@@ -29,7 +29,7 @@ def real_time_price(stock_code):
         texts = web_content_div(web_content, "My(6px) Pos(r) smartphone_Mt(6px)")
         
         if texts != []:
-            price, change = [0], [1]
+            price, change = texts[0], texts[1]
         else:
             price, change = [], []
         
