@@ -6,4 +6,4 @@ engine = YahooEngine()
 
 stock_code = "AAPL"
 
-print(engine.get_price(stock_code))
+print(engine.get_real_time_quote(stock_code))

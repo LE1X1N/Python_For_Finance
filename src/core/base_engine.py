@@ -7,5 +7,5 @@ class BaseStockEngine(ABC):
         super().__init__()
     
     @abstractmethod
-    def get_price(self, stock_code):
+    def get_real_time_quote(self, stock_code):
         pass

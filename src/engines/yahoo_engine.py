@@ -19,7 +19,7 @@ class YahooEngine(BaseStockEngine):
         }
         self.class_path = "container yf-z2uro5"  
     
-    def get_price(self, stock_code):
+    def get_real_time_quote(self, stock_code):
         try:
             r = requests.get(self.url+stock_code, headers=self.headers)
             web_content = BeautifulSoup(r.text, "lxml")
