@@ -1,4 +1,4 @@
-from src.engines.yahoo_engine import YahooEngine
+from src import YahooEngine
 
 
 engine = YahooEngine()
