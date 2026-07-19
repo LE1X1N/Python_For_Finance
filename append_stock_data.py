@@ -47,7 +47,7 @@ def append_stock_data(csv_path, add_rows, min_vol_add, max_vol_add, freq):
 
     with open(csv_path, "a", encoding="utf-8", newline="") as f:
         writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
-        
+
         for idx in range(add_rows):
             # 时间 +10秒
             current_dt += timedelta(seconds=freq)  
