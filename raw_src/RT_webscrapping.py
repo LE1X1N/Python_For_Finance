@@ -4,29 +4,50 @@ import requests
 from requests.exceptions import ConnectionError
 from bs4 import BeautifulSoup
 
-"""
-    Find content inside the url
-"""
+
 def web_content_div(web_content, class_path):
+    """
+        Price, Change
+    """
     web_content_div = web_content.find_all('div', {'class': class_path})
     try:
         spans = web_content_div[0].find_all('span')
         texts = [span.get_text() for span in spans]
     except IndexError:
-        texts = []
+        raise IndexError
     
-    return texts
+    return texts[0], texts[1]+texts[2]
 
-def web_content_li(web_content, class_path):
-    web_content_li = web_content.find_all('li', {'class': class_path})
+def web_content_statistics(web_content: BeautifulSoup, class_path: str):
+    """
+        Fundimentals: 
+            Previous Close
+            Open
+            Bid
+            Ask
+            Day's Range
+            52 Week Range
+            Volume
+            Avg. Volume
+            Market Cap
+            Beta
+            PE Ratio
+            EPS
+            Earnings Date
+            Forward Dividend & Yield
+            Ex-Divident Date
+            1y Target Est
+    """
+    web_content_div = web_content.find_all('div', {'data-testid': class_path})
+    web_content_li = web_content_div[0].find_all('li')
     fundimentals = {}
     try:
         for tag in web_content_li:
             spans = tag.find_all('span')
             texts = [span.get_text() for span in spans]
-            fundimentals[str(texts[0]).strip()] = str(texts[1]).strip()
+            fundimentals[str(texts[1]).strip()] = str(texts[2]).strip()
     except IndexError:
-        texts = []
+        raise IndexError
     
     return fundimentals
 
@@ -46,14 +67,9 @@ def real_time_price(stock_code):
     try:
         r = requests.get(url, headers=headers)
         web_content = BeautifulSoup(r.text, "lxml")
-        texts = web_content_div(web_content, "container yf-z2uro5")
         
-        if texts != []:
-            price, change = texts[0], texts[1]+texts[2]
-        else:
-            price, change = [], []
-        
-        fundimentals = web_content_li(web_content, "yf-gf32ga")
+        price, change = web_content_div(web_content, "container yf-z2uro5")
+        fundimentals = web_content_statistics(web_content, "quote-statistics")
         
         volume = fundimentals["Volume"]
         one_year_target = fundimentals["1y Target Est"]
@@ -65,7 +81,7 @@ def real_time_price(stock_code):
     return price, change, volume, one_year_target
 
 
-Stock = ["AAPL", "BRK-B", "PYPL", "AMZN", "BABA", "MSFT", "GOOG"]
+Stock = ["AAPL"]
 
 while (True):
     info = []
