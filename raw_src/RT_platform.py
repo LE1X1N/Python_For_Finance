@@ -62,17 +62,15 @@ def read_data_ohlc(filename, stock_code, usecols):
     data['time'] = pd.to_datetime(data['time'], format='%Y-%m-%d %H:%M:%S')
     
     # MA
-    data['MA5'] = data['close'].rolling(5).mean()
-    data['MA10'] = data['close'].rolling(10).mean()
-    data['MA20'] = data['close'].rolling(20).mean()
+    data['MA5'] = data['close'].rolling(5, min_periods=1).mean()
+    data['MA10'] = data['close'].rolling(10, min_periods=1).mean()
+    data['MA20'] = data['close'].rolling(20, min_periods=1).mean()
     
     # difference the accumulate volume
     df_vol = df['volume'].resample('30s').mean()    # resample volume
-    data['volume_diff'] = df_vol.diff()     
-    data[data['volume_diff'] < 0] = None
+    data['volume_diff'] = df_vol.diff()
+    data.loc[data['volume_diff'] < 0, 'volume_diff'] = None
     
-    index_with_nan = data.index[data.isnull().any(axis=1)]
-    data.drop(index_with_nan, axis=0, inplace=True)
     data.reset_index(drop=True, inplace=True)
     
     return data, latest_price, latest_change, df['target'][-1], df['volume'][-1]
@@ -85,14 +83,14 @@ def animate(i):
     data, latest_price, latest_change, target, volume = read_data_ohlc(filename, Stock[0], [1, 2, 3, 4, 5])
     
     ohlc = []
-    for candle in  range(len(data['open'])-1):
-        append_me = candle, data['open'][candle], data['high'][candle],data['low'][candle], data['close'][candle],
+    for candle in  range(len(data)):
+        append_me = data.index[candle], data['open'][candle], data['high'][candle],data['low'][candle], data['close'][candle],
         ohlc.append(append_me) 
     
     ax1.clear()
     candlestick_ohlc(ax1, ohlc, width=0.4, colorup="#ff3503", colordown="#18b800")
     
-    ax1.plot(data["MA5"], color="pink", linestyle="-", linewidth=1, label="5 minutes SMA")
+    ax1.plot(data["MA5"], color="pink", linestyle="-", linewidth=1, label="  5 minutes SMA")
     ax1.plot(data["MA10"], color="orange", linestyle="-", linewidth=1, label="10 minutes SMA")
     ax1.plot(data["MA20"], color="#08a0e9", linestyle="-", linewidth=1, label="20 minutes SMA")
     
@@ -135,7 +133,7 @@ def animate(i):
 # animate(1)
 # plt.show()
 
-ani = animation.FuncAnimation(fig, animate, interval=1)
+ani = animation.FuncAnimation(fig, animate, interval=100)
 plt.show()
     
     
