@@ -20,7 +20,7 @@ ax7 = fig.add_subplot(gs[5, 4:6])
 ax8 = fig.add_subplot(gs[4, 0:4])
 ax9 = fig.add_subplot(gs[5, 0:4])
 
-Stock = ["AAPL", "PYPL", "AMZN", "BABA", "BRK-B", "MSFT", "SPCX"]
+Stock = ["AAPL", "BRK-B", "PYPL", "AMZN", "BABA", "MSFT", "GOOG"]
 
 def figure_design(ax):
     ax.set_facecolor("#091217")
@@ -72,5 +72,15 @@ def read_data_ohlc(filename, stock_code, usecols):
     data.reset_index(drop=True, inplace=True)
     
     return data, latest_price, latest_change, df['pattern'][-1], df['target'][-1], df['volume'][-1]
+
+def animate(i):
+    time_stamp = datetime.datetime.now()
+    time_stamp = time_stamp.strftime("%Y-%m-%d")
+    filename =  str(time_stamp) + "stock data.csv"
+    
+    data, latest_price, latest_change, pattern, target, volume = read_data_ohlc(filename, Stock[0], [1, 2, 3, 4, 5, 6])
+    
+    
+    
     
     
