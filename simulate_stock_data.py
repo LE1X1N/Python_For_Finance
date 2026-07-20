@@ -52,8 +52,10 @@ def append_stock_data(stock_num, interval, add_rows, min_vol_add, max_vol_add):
         
         all_rows.append(init_row)
     else:
+        stock_num = (len(all_rows[0])-2)//4     # update stock number
         first_row = all_rows[0]
         last_row = all_rows[-1]
+        
         for i in range(stock_num):
             col_off = 2 + i * 4
             base_p = float(first_row[col_off])
