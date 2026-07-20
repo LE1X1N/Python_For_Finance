@@ -122,6 +122,9 @@ def animate(i):
         append_me = data.index[candle], data['open'][candle], data['high'][candle],data['low'][candle], data['close'][candle],
         ohlc.append(append_me) 
     
+    """
+       Ax0, Candlestick
+    """
     ax0.clear()
     candlestick_ohlc(ax0, ohlc, width=0.4, colorup="#ff3503", colordown="#18b800")
     
@@ -159,8 +162,9 @@ def animate(i):
     
     ax0.set_xticklabels([])
     
-    
-    # ax1 - ax6
+    """
+       ax1 - ax6, Linechart
+    """
     data_ax1, latest_price, latest_change, target, _ = read_data_ohlc(filename, Stock[1], [1, 6, 7, 8, 9])
     subplot_plot(ax1, Stock[1], data_ax1, latest_price, latest_change, target)
     
@@ -179,6 +183,28 @@ def animate(i):
     data_ax6, latest_price, latest_change, target, _ = read_data_ohlc(filename, Stock[6], [1, 26, 27, 28, 29])
     subplot_plot(ax6, Stock[6], data_ax6, latest_price, latest_change, target)
 
+    """
+        Ax7, Barchart
+    """
+    ax7.clear()
+    figure_design(ax7)
+    ax7.axes.yaxis.set_visible(False)
+    
+    pos = (data['open'] - data['close']) < 0
+    neg = (data['open'] - data['close']) > 0
+    data['x_axis'] = list(range(1, len(data['volume_diff'])+1))
+    ax7.bar(data['x_axis'][pos], data['volume_diff'][pos], color="#ff3503", width=0.8, align='center')
+    ax7.bar(data['x_axis'][neg], data['volume_diff'][neg], color="#18b800", width=0.8, align='center')
+    
+    ymax = data['volume_diff'].max() 
+    ystd = data['volume_diff'].std()
+    if not math.isnan(ymax):
+        ax7.set_ylim([0, ymax + ystd*3])
+    
+    ax7.text(0.01, 0.95, f"Volume: {int(volume):,}", transform=ax7.transAxes, color="white", fontsize=9, fontweight='bold', 
+                horizontalalignment='left', verticalalignment='top') 
+    ax7.grid(True, color='grey', linestyle='-', which='major', axis='both', linewidth=0.3)
+    ax7.set_xticklabels([])
 
 # animate(1)
 # plt.show()
