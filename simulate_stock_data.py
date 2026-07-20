@@ -18,7 +18,7 @@ def parse_time(time_str):
 def format_time(dt):
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
-def append_stock_data(csv_path, add_rows, min_vol_add, max_vol_add, freq):
+def append_stock_data(csv_path, add_rows, min_vol_add, max_vol_add, interval):
     # read CSV file
     all_rows = []
     with open(csv_path, "r", encoding="utf-8", newline="") as f:
@@ -50,7 +50,7 @@ def append_stock_data(csv_path, add_rows, min_vol_add, max_vol_add, freq):
 
         for idx in range(add_rows):
             # 时间 +10秒
-            current_dt += timedelta(seconds=freq)  
+            current_dt += timedelta(seconds=interval)  
             
             # 随机价格波动 ±0.1
             price_delta = round(random.uniform(-0.1, 0.1), 2)
@@ -81,7 +81,7 @@ def append_stock_data(csv_path, add_rows, min_vol_add, max_vol_add, freq):
             print(f"已写入第{idx+1}/{add_rows}条：{','.join(row_data)}")
             
             # 开启延迟
-            time.sleep(freq)
+            time.sleep(interval)
 
     print(f"✅ 成功追加 {add_rows} 条行情数据到 {csv_path}")
 
@@ -89,10 +89,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="股票CSV追加模拟累计成交量行情数据")
     # 必选参数
     parser.add_argument("--csv", type=str, default="2026-07-19 stock data.csv", help="目标CSV文件路径")
-    parser.add_argument("--rows", type=int, default=10, help="需要追加的数据行数")
-    parser.add_argument("--freq", type=int, default=10, help="实时延迟")
+    parser.add_argument("--interval", type=int, default=10, help="Tick生成间隔")
     
     # 可选参数
+    parser.add_argument("--rows", type=int, default=100, help="需要追加的数据行数")
     parser.add_argument("--min-vol", type=int, default=400000, help="单次最小成交量增量")
     parser.add_argument("--max-vol", type=int, default=2800000, help="单次最大成交量增量")
 
@@ -102,5 +102,5 @@ if __name__ == "__main__":
         add_rows=args.rows,
         min_vol_add=args.min_vol,
         max_vol_add=args.max_vol,
-        freq=args.freq
+        interval=args.interval
     )
