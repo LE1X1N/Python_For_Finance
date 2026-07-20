@@ -18,9 +18,9 @@ def parse_time(time_str):
 def format_time(dt):
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
-def append_stock_data(stock_code, interval, add_rows, min_vol_add, max_vol_add):
+def append_stock_data(stock_num, interval, add_rows, min_vol_add, max_vol_add):
     
-    csv_path = f"{datetime.now().strftime('%Y-%m-%d')} {stock_code}.csv"
+    csv_path = f"stock_tick_{datetime.now().strftime('%Y-%m-%d')}.csv"
     
     # read CSV file
     all_rows = []
@@ -32,82 +32,74 @@ def append_stock_data(stock_code, interval, add_rows, min_vol_add, max_vol_add):
             if row:
                 all_rows.append(row)
     
+    stock_meta = []     # per stock quote
+    
     # If there's no such file, we create a new line
     if not all_rows:
-        print(f"无{csv_path}文件，正在模拟数据进行生成...")
+        print(f"无{csv_path}文件，初始化{stock_num}只股票初始数据...")
+        init_row = ["0", datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+        
+        for i in range(stock_num):
+            init_p = round(random.uniform(1.5, 99.5), 2)    
+            init_t = round(random.uniform(1.5, 99.5), 2)
+            init_row.extend([f"{init_p}", "0", "0", f"{init_t}"]) # price, change, volume, target 
+            stock_meta.append([init_p, init_p, 0, init_t])  # Open Price, Last Price, Last Volume, Target
+        
         with open(csv_path, "a", encoding="utf-8", newline="") as f:
             writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL) 
-            row_data = [
-                "0",
-                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                f"{round(random.uniform(1.5, 99.5),2)}",
-                "0",
-                "0",
-                f"{round(random.uniform(1.5, 99.5),2)}"
-            ]
-            writer.writerow(row_data)
+            writer.writerow(init_row)
             f.flush()   # 更新
-            all_rows.append(row_data)
-     
+        
+        all_rows.append(init_row)
+    else:
+        first_row = all_rows[0]
+        last_row = all_rows[-1]
+        for i in range(stock_num):
+            col_off = 2 + i * 4
+            base_p = float(first_row[col_off])
+            last_p = float(last_row[col_off])
+            last_vol = str_volume_to_int(last_row[col_off + 2])
+            target_p = float(last_row[col_off + 3])
+            stock_meta.append([base_p, last_p, last_vol, target_p])
     
     # If there exists csv, we append new lines.
-    print(f"{csv_path}读取完成进行生成...")
-
-    # 第一行为开盘价
-    base_price = float(all_rows[0][2])
-    
-    # 最后一行作为变化基准
-    last_row = all_rows[-1]
-    last_dt = parse_time(last_row[1])
-    last_price = float(last_row[2])
-    last_acc_vol = str_volume_to_int(last_row[4])
-    target_price = last_row[5]
-    
-    print(f"开盘价：{base_price}")
-    print(f"最新价格：{last_price}({last_dt})")
-    print(f"最新成交量：{last_acc_vol}({last_dt})")
-    print(f"目标价：{target_price}")
-
-    current_price = last_price
+    print(f"{csv_path}读取完成,开始生成{add_rows}条Tick")
+    last_dt = parse_time(all_rows[-1][1])
     current_dt = last_dt
-    current_vol = last_acc_vol
 
     with open(csv_path, "a", encoding="utf-8", newline="") as f:
         writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
-
         for idx in range(add_rows):
-            # 时间 + interval
+
             current_dt += timedelta(seconds=interval)  
+            row_data = ["0", format_time(current_dt)]
             
-            # 随机价格波动 ±0.1
-            price_delta = round(random.uniform(-0.1, 0.1), 2)
-            current_price = round(current_price + price_delta, 2) 
+            # iterate each stock
+            for i in range(stock_num):
+                base_p, last_p, last_vol, target_p = stock_meta[i]
+            
+                # 随机价格波动 ±0.1
+                price_delta = round(random.uniform(-0.1, 0.1), 2)
+                current_price = round(last_p + price_delta, 2) 
 
-            # 计算涨跌金额、涨跌幅百分比
-            price_diff = round(current_price - base_price, 2)
-            pct_diff = round((price_diff / base_price) * 100, 2)
-            sign = "+" if price_diff >= 0 else ""
-            change_str = f"{sign}{price_diff} ({sign}{pct_diff}%)"
+                # 计算涨跌金额、涨跌幅百分比
+                price_diff = round(current_price - base_p, 2)
+                pct_diff = round((price_diff / base_p) * 100, 2)
+                sign = "+" if price_diff >= 0 else ""
+                change_str = f"{sign}{price_diff} ({sign}{pct_diff}%)"
 
-            # 累计成交量随机增加
-            vol_add = random.randint(min_vol_add, max_vol_add)
-            current_vol += vol_add
-            vol_str = int_to_volume_str(current_vol)
+                # 累计成交量随机增加
+                vol_add = random.randint(min_vol_add, max_vol_add)
+                current_vol = last_vol + vol_add
+                vol_str = int_to_volume_str(current_vol)
 
-            # 拼接数据
-            row_data = [
-                "0",
-                format_time(current_dt),
-                f"{current_price}",
-                change_str,
-                vol_str,
-                target_price
-            ]
+                row_data.extend([f"{current_price}", change_str, vol_str, f"{target_p}"])  
+                stock_meta[i][1] = current_price
+                stock_meta[i][2] = current_vol
+                
             writer.writerow(row_data)
             f.flush()   # 更新
-            print(f"已写入第{idx+1}/{add_rows}条：{','.join(row_data)}")
-            
-            # 开启延迟
+            print(f"已写入第{idx+1}/{add_rows}条：{','.join(row_data[:6])}")
             time.sleep(interval)
 
     print(f"✅ 成功追加 {add_rows} 条行情数据到 {csv_path}")
@@ -115,7 +107,7 @@ def append_stock_data(stock_code, interval, add_rows, min_vol_add, max_vol_add):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="模拟股票实时行情数据")
    
-    parser.add_argument("--code", type=str, default="BABA", help="股票代码")     # 必选
+    parser.add_argument("--num", type=int, default=2, help="股票数量")        # 必选
     parser.add_argument("--interval", type=int, default=1, help="Tick生成间隔")  # 可选
     parser.add_argument("--rows", type=int, default=100, help="需要追加的数据行数")
     parser.add_argument("--min-vol", type=int, default=400000, help="单次最小成交量增量")
@@ -123,7 +115,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     append_stock_data(
-        stock_code=args.code,   
+        stock_num=args.num,   
         interval=args.interval, 
         add_rows=args.rows,
         min_vol_add=args.min_vol,
