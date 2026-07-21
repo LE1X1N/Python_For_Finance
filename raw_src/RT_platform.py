@@ -74,6 +74,25 @@ def string_to_number(df, column):
         df[column] = df[column].astype(float)
     return df
 
+
+def compute_RSI(data, time_window):
+    diff = data.diff(1).dropna()
+    
+    up_change = 0*diff
+    down_change = 0*diff
+    
+    up_change[diff > 0] = diff[diff>0]
+    down_change[diff > 0] = diff[diff<0]
+    
+    up_change_avg = up_change.ewm(com=time_window-1, min_periods=time_window).mean()
+    down_change_avg = down_change.ewm(com=time_window-1, min_periods=time_window).mean()
+    
+    rs = abs(up_change_avg / down_change_avg)
+    rsi = 100 - 100/(1-rs)
+    return rsi
+
+
+
 def read_data_ohlc(filename, stock_code, usecols):
     # base df
     df = pd.read_csv(filename, header=None, usecols=usecols,
@@ -205,6 +224,12 @@ def animate(i):
                 horizontalalignment='left', verticalalignment='top') 
     ax7.grid(True, color='grey', linestyle='-', which='major', axis='both', linewidth=0.3)
     ax7.set_xticklabels([])
+    
+    """
+        Ax8, RSI
+    """
+    
+    
 
 # animate(1)
 # plt.show()
