@@ -82,13 +82,13 @@ def compute_RSI(data, time_window):
     down_change = 0*diff
     
     up_change[diff > 0] = diff[diff>0]
-    down_change[diff > 0] = diff[diff<0]
+    down_change[diff < 0] = diff[diff<0]
     
     up_change_avg = up_change.ewm(com=time_window-1, min_periods=time_window).mean()
     down_change_avg = down_change.ewm(com=time_window-1, min_periods=time_window).mean()
     
     rs = abs(up_change_avg / down_change_avg)
-    rsi = 100 - 100/(1-rs)
+    rsi = 100 - 100/(1+rs)
     return rsi
 
 
@@ -121,6 +121,8 @@ def read_data_ohlc(filename, stock_code, usecols):
     data['MA5'] = data['close'].rolling(5, min_periods=1).mean()
     data['MA10'] = data['close'].rolling(10, min_periods=1).mean()
     data['MA20'] = data['close'].rolling(20, min_periods=1).mean()
+    # RSI
+    data['RSI'] = compute_RSI(data['close'], time_window=14)
     
     # difference the accumulate volume
     df_vol = df['volume'].resample('30s').mean()    # resample volume
@@ -228,8 +230,29 @@ def animate(i):
     """
         Ax8, RSI
     """
+    ax8.clear()
+    figure_design(ax8)
+    ax8.axes.yaxis.set_visible(False)
+    ax8.set_ylim([-5, 105])
     
+    ax8.axhline(30, linestyle='-', color='green', linewidth=0.5)
+    ax8.axhline(50, linestyle='-', color='white', linewidth=0.5)
+    ax8.axhline(70, linestyle='-', color='red', linewidth=0.5)
+    ax8.plot(data['x_axis'], data['RSI'], color="#08a0e9", linewidth=1.5)
+
+    ax8.text(0.01, 0.95, f"RSI: {str(round(data['RSI'].iloc[-1], 2))}", transform=ax8.transAxes, color="white", 
+             fontsize=9, fontweight='bold', horizontalalignment='left', verticalalignment='top') 
     
+    xdate = [i for i in data['time']]
+    
+    def mydate(x, pos=None):
+        try:
+            return xdate[int(x)].strftime('%H:%M')
+        except IndexError:
+            return ""
+    
+    ax8.xaxis.set_major_formatter(mticker.FuncFormatter(mydate))
+    ax8.grid(True, color='grey', linestyle='-', which='major')
 
 # animate(1)
 # plt.show()
