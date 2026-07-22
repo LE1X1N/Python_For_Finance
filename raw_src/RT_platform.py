@@ -6,6 +6,8 @@ import matplotlib.ticker as mticker
 from mplfinance.original_flavor import candlestick_ohlc
 from datetime import datetime
 import math
+import os
+import time
 
 fig = plt.figure()
 fig.patch.set_facecolor('#121416')
@@ -78,17 +80,22 @@ def string_to_number(df, column):
 def compute_RSI(data, time_window):
     diff = data.diff(1).dropna()
     
-    up_change = 0*diff
-    down_change = 0*diff
+    up_change = pd.Series(0, index=diff.index)
+    down_change = pd.Series(0, index=diff.index)
     
-    up_change[diff > 0] = diff[diff>0]
-    down_change[diff < 0] = diff[diff<0]
+    mask_up = diff > 0
+    mask_down = diff < 0
+    up_change[mask_up] = diff[mask_up]
+    down_change[mask_down] = -diff[mask_down]   # abs
     
-    up_change_avg = up_change.ewm(com=time_window-1, min_periods=time_window).mean()
-    down_change_avg = down_change.ewm(com=time_window-1, min_periods=time_window).mean()
+    up_avg = up_change.ewm(com=time_window-1, min_periods=time_window).mean()
     
-    rs = abs(up_change_avg / down_change_avg)
+    down_avg = down_change.ewm(com=time_window-1, min_periods=time_window).mean()
+    down_avg = down_avg.mask(down_avg == 0, 1e-10)
+    
+    rs = up_avg / down_avg
     rsi = 100 - 100/(1+rs)
+    rsi = rsi.fillna(50)
     return rsi
 
 
@@ -135,7 +142,7 @@ def read_data_ohlc(filename, stock_code, usecols):
 
 def animate(i):
     filename = f"stock_tick_{datetime.now().strftime('%Y-%m-%d')}.csv"
-    
+        
     data, latest_price, latest_change, target, volume = read_data_ohlc(filename, Stock[0], [1, 2, 3, 4, 5])
     
     ohlc = []
@@ -254,11 +261,11 @@ def animate(i):
     ax8.xaxis.set_major_formatter(mticker.FuncFormatter(mydate))
     ax8.grid(True, color='grey', linestyle='-', which='major')
 
-# animate(1)
-# plt.show()
-
-ani = animation.FuncAnimation(fig, animate, interval=100, cache_frame_data=False)
+animate(1)
 plt.show()
+
+# ani = animation.FuncAnimation(fig, animate, interval=100, cache_frame_data=False)
+# plt.show()
     
     
     
