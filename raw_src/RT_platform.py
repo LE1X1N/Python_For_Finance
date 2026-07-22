@@ -50,7 +50,7 @@ def subplot_plot(ax, stock_code, data, latest_price, latest_change, target):
     ymax = data['close'].max()
     ystd = data['close'].std()
     
-    if not math.isnan(ymax) and ymax != 0:
+    if not math.isnan(ymax) and not math.isnan(ystd) and not math.isnan(ymin) and ystd!=0.0:
         ax.set_ylim([ymin-ystd*0.5, ymax+ystd*3])
 
     ax.text(0.02, 0.95, stock_code, transform=ax.transAxes, color="#FFBF00", fontsize=11, fontweight='bold', 
@@ -95,7 +95,6 @@ def compute_RSI(data, time_window):
     
     rs = up_avg / down_avg
     rsi = 100 - 100/(1+rs)
-    rsi = rsi.fillna(50)
     return rsi
 
 
@@ -130,6 +129,7 @@ def read_data_ohlc(filename, stock_code, usecols):
     data['MA20'] = data['close'].rolling(20, min_periods=1).mean()
     # RSI
     data['RSI'] = compute_RSI(data['close'], time_window=14)
+    data['RSI'] = data['RSI'].fillna(50)    # NAN -> 50
     
     # difference the accumulate volume
     df_vol = df['volume'].resample('30s').mean()    # resample volume
@@ -140,9 +140,8 @@ def read_data_ohlc(filename, stock_code, usecols):
     
     return data, latest_price, latest_change, df['target'][-1], df['volume'][-1]
 
-def animate(i):
-    filename = f"stock_tick_{datetime.now().strftime('%Y-%m-%d')}.csv"
-        
+def animate(i, filename):
+
     data, latest_price, latest_change, target, volume = read_data_ohlc(filename, Stock[0], [1, 2, 3, 4, 5])
     
     ohlc = []
@@ -226,7 +225,7 @@ def animate(i):
     
     ymax = data['volume_diff'].max() 
     ystd = data['volume_diff'].std()
-    if not math.isnan(ymax):
+    if not math.isnan(ymax) and not math.isnan(ystd):
         ax7.set_ylim([0, ymax + ystd*3])
     
     ax7.text(0.01, 0.95, f"Volume: {int(volume):,}", transform=ax7.transAxes, color="white", fontsize=9, fontweight='bold', 
@@ -261,11 +260,19 @@ def animate(i):
     ax8.xaxis.set_major_formatter(mticker.FuncFormatter(mydate))
     ax8.grid(True, color='grey', linestyle='-', which='major')
 
-animate(1)
-plt.show()
-
-# ani = animation.FuncAnimation(fig, animate, interval=100, cache_frame_data=False)
+# animate(1)
 # plt.show()
+
+
+filename = f"stock_tick_{datetime.now().strftime('%Y-%m-%d')}.csv"
+
+print("等待开盘...")
+while (not os.path.exists(filename)):
+    time.sleep(3)
+
+print("开始渲染...")
+ani = animation.FuncAnimation(fig, animate, fargs=(filename, ), interval=100, cache_frame_data=False)
+plt.show()
     
     
     
