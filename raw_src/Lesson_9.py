@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import pandas_ta as ta
+import matplotlib
 import matplotlib.pyplot as plt  
 import matplotlib.ticker as ticker
 import matplotlib.animation as animation
@@ -38,7 +39,7 @@ def compute_BollingerBands(df, n, m):
     return df
 
 
-def compute_profit(i, Profit, ax):
+def compute_profit(i, Profit, ax: matplotlib.axes.Axes):
     pass
 
 def backtest_day(i, data_full):
@@ -50,7 +51,6 @@ def backtest_day(i, data_full):
     data_day = data_full[(data_full['year'] == year) & (data_full['month'] == month) & (data_full['day'] == day)] 
     data_day.reset_index(inplace=True)
     return data_day, time_stamp
-    
     
 
 def MA_strategy(data):
@@ -126,14 +126,37 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, MA=True):
     
     return Profit
 
-def subplot_MACD(data, ax):
-    pass
+def subplot_MACD(data: pd.DataFrame, ax: matplotlib.axes.Axes):
+    # Moving Average Convergence Divergence
+    ax.clear()
+    figure_design(ax)
+    
+    macd = ta.momentum.macd(data['close']) * 100
+    data = pd.concat([data, macd], axis=1).reindex(data.index)
+    
+    ax.plot(data['MACD_12_26_9'], label='MACD', linewidth=1, color='white') # MACD Line
+    ax.plot(data['MACDs_12_26_9'], label='signal', linewidth=1, color='orange') # Signal Line
+    
+    pos = data['MACDh_12_26_9'] > 0  # Histogram
+    neg = data['MACDh_12_26_9'] < 0
+    
+    ax.bar(data.index[pos], data['MACDh_12_26_9'][pos], color="#8B0000", width=0.8, align='center')
+    ax.bar(data.index[neg], data['MACDh_12_26_9'][neg], color="#006400", width=0.8, align='center')
+    
+    if len(data['MACD_12_26_9'] != 0):
+        ax.text(0.01, 0.95, 'MACD(12, 26, 9)', transform=ax.transAxes, color='white', fontsize=10,
+                fontweight='bold', horizontalalignment='left', verticalalignment='top')
+    
+    ax.grid(True, color='grey', linestyle="-", which='major', axis='both', linewidth='0.3')
+    ax.set_xticklabels([])
+    
 
-def subplot_RSI(data, ax):
+def subplot_RSI(data: pd.DataFrame, ax: matplotlib.axes.Axes):
     pass
 
 
 fig = plt.figure()
+fig = plt.figure(figsize=(16.0, 10.0))
 fig.patch.set_facecolor("#121416")
 gs = fig.add_gridspec(6, 6)
 
@@ -153,7 +176,7 @@ def animate(i):
     
     if not data_day.empty:
         Profit = main_plot(data_day, ax1, current_date)
-        # subplot_MACD(data_day, ax2)
+        subplot_MACD(data_day, ax2)
         # subplot_RSI(data_day, ax3)
         # compute_profit(i, Profit, ax1)
 
