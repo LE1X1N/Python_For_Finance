@@ -27,7 +27,14 @@ def compute_RSI(data, time_window):
     rsi = 100 - 100/(1+rs)
     return rsi
 
-def compute_BollingerBands(df, n, m):
+def compute_BollingerBands(df, n, m):   
+    df['TP'] = (df['high'] + df['low'] + df['close']) / 3 # Typical Price
+    df['std'] = df['TP'].rolling(n).std(ddof=0) # Standard Deviation 
+    df['MA-TP'] = df['TP'].rolling(n).mean()    # Moving Average
+    
+    df['BBU'] = df['MA-TP'] + m * df["std"]    # Upper BollingerBand
+    df['BBL'] = df['MA-TP'] - m * df["std"]    # Lower BollingerBand
+    
     return df
 
 
@@ -76,14 +83,34 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, MA=True):
         candlestick_ohlc(ax, ohlc, width=0.4, colorup="#ff3503", colordown="#18b800")
 
     if showMA == True:
-        pass
+        data['MA5'] = data['close'].rolling(5).mean()
+        data['MA10'] = data['close'].rolling(10).mean()
+        data['MA20'] = data['close'].rolling(20).mean()
+        
+        ax.plot(data['MA5'], color='pink', linestyle='-', linewidth=1, label="5 minutes SMA")
+        ax.plot(data['MA10'], color='orange', linestyle='-', linewidth=1, label="10 minutes SMA")
+        ax.plot(data['MA20'], color='#08a0e9', linestyle='-', linewidth=1, label="20 minutes SMA")
+        
+        
     
     if showBB == True:
-        pass
-
+        # bb = ta.bbands(data['close'], length=20, lower_std=2, upper_std=2)
+        # print(bb)
+        
+        data = compute_BollingerBands(data, 20, 2)
+        
+        ax.fill_between(data.index, data["BBU"], data["BBL"], 
+                        facecolor='#666699', alpha=0.2, label="Bollinger Bands")
+        ax.plot(data["BBU"], color="#666699", linestyle="-", linewidth=0.2)
+        ax.plot(data["BBL"], color="#666699", linestyle="-", linewidth=0.2)
+        
+        
     if showMA == True | showBB == True:
-        pass
-    
+        leg = ax.legend(loc='upper left', facecolor="#121416", fontsize=10)
+        # for text in leg.get_texts():
+        #     text.set_color('w')
+        plt.setp(leg.get_texts(), color='w')
+        
     if MA == True:
         Profit = 0
     else:
@@ -131,6 +158,6 @@ def animate(i):
         # compute_profit(i, Profit, ax1)
 
 
-ani = animation.FuncAnimation(fig, animate, interval=100)
+ani = animation.FuncAnimation(fig, animate, interval=1000)
 # animate(1)
 plt.show()
