@@ -3,7 +3,7 @@ import numpy as np
 import pandas_ta as ta
 import matplotlib
 import matplotlib.pyplot as plt  
-import matplotlib.ticker as ticker
+import matplotlib.ticker as mticker
 import matplotlib.animation as animation
 from mplfinance.original_flavor import candlestick_ohlc
 
@@ -91,8 +91,7 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, MA=True):
         ax.plot(data['MA10'], color='orange', linestyle='-', linewidth=1, label="10 minutes SMA")
         ax.plot(data['MA20'], color='#08a0e9', linestyle='-', linewidth=1, label="20 minutes SMA")
         
-        
-    
+
     if showBB == True:
         # bb = ta.bbands(data['close'], length=20, lower_std=2, upper_std=2)
         # print(bb)
@@ -103,8 +102,7 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, MA=True):
                         facecolor='#666699', alpha=0.2, label="Bollinger Bands")
         ax.plot(data["BBU"], color="#666699", linestyle="-", linewidth=0.2)
         ax.plot(data["BBL"], color="#666699", linestyle="-", linewidth=0.2)
-        
-        
+
     if showMA == True | showBB == True:
         leg = ax.legend(loc='upper left', facecolor="#121416", fontsize=10)
         # for text in leg.get_texts():
@@ -152,10 +150,39 @@ def subplot_MACD(data: pd.DataFrame, ax: matplotlib.axes.Axes):
     
 
 def subplot_RSI(data: pd.DataFrame, ax: matplotlib.axes.Axes):
-    pass
+    ax.clear()
+    figure_design(ax)
+    
+    ax.axes.yaxis.set_ticks([30, 70])
+    ax.set_ylim([-2, 102])
+
+    # data['RSI'] = compute_RSI(data['close'], 14)
+    data['RSI'] = ta.momentum.rsi(data['close'], 14)
+    data['x_axis'] = list(range(1, len(data['close']) + 1))
+    
+    ax.plot(data['x_axis'], data['RSI'], color="white", linewidth=1)
+    
+    if len(data['RSI'] != 0):
+        ax.text(0.01, 0.95, f"RSI(14)", transform=ax.transAxes, color="white", 
+               fontsize=9, fontweight='bold', horizontalalignment='left', verticalalignment='top') 
+
+    ax.axhline(30, linestyle='-', color='green', linewidth=0.5)
+    ax.axhline(50, linestyle='-', color='white', linewidth=0.5)
+    ax.axhline(70, linestyle='-', color='red', linewidth=0.5)
+
+    data['datetime'] = pd.to_datetime(data['datetime'], format="%Y-%m-%d %H:%M:%S")
+    xdate = [i for i in data['datetime']]
+    
+    def mydate(x, pos=None):
+        try:
+            return xdate[int(x)].strftime('%H:%M')
+        except IndexError:
+            return ""
+    
+    ax.xaxis.set_major_formatter(mticker.FuncFormatter(mydate))
+    ax.grid(True, color='grey', linestyle='-', which='major')
 
 
-fig = plt.figure()
 fig = plt.figure(figsize=(16.0, 10.0))
 fig.patch.set_facecolor("#121416")
 gs = fig.add_gridspec(6, 6)
@@ -171,13 +198,12 @@ date_list = sorted(set([x[0:10] for x in data_full['datetime']]))   # all tradin
 
 
 def animate(i):
-    print(i)
     data_day, current_date = backtest_day(i, data_full)
     
     if not data_day.empty:
         Profit = main_plot(data_day, ax1, current_date)
         subplot_MACD(data_day, ax2)
-        # subplot_RSI(data_day, ax3)
+        subplot_RSI(data_day, ax3)
         # compute_profit(i, Profit, ax1)
 
 
