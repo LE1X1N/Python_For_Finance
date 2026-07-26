@@ -137,8 +137,8 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, apply_strategy=T
                 Profit = Profit + float(item[1])
             margin = margin - 0.055
          
-        if Record[-1][2] == 'Buy':
-            Profit = Profit + float(Record[-1][1])  # offset last buy signal
+        # if Record[-1][2] == 'Buy':
+        #     Profit = Profit + float(Record[-1][1])  # offset last buy signal
 
         ax.text(0.9, 1.05, f"Daily Profit: ${str(round(Profit, 3))}",
                 bbox = dict(facecolor='white', alpha = 0.5),
