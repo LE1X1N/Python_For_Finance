@@ -7,7 +7,7 @@ import matplotlib.ticker as mticker
 import matplotlib.animation as animation
 from mplfinance.original_flavor import candlestick_ohlc
 
-from Strategies import MA_Crossover_Strategy
+from Strategies import *
 
 def compute_RSI(data, time_window):
     diff = data.diff(1).dropna()
@@ -70,7 +70,7 @@ def figure_design(ax):
     ax.spines['right'].set_color("#808080")
     
 
-def main_plot(data, ax, current_date, showMA=True, showBB=True, apply_strategy=True):
+def main_plot(data, ax, current_date, showMA=True, showBB=True, apply_strategy=True, strategy_func=None):
     candle_counter = range(len(data["open"]) - 1)
     ohlc = []
     
@@ -114,7 +114,7 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, apply_strategy=T
         
     if apply_strategy == True:
         # choose a strategy
-        data, Record = MA_Crossover_Strategy(data)  
+        data, Record = strategy_func(data)  
         
         # Buy and Sell signal scatter plot
         ax.scatter(data.index, data['Buy'], label="Buy", marker='^', color = "#FF6FFF", alpha=1, s=100)
@@ -137,8 +137,8 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, apply_strategy=T
                 Profit = Profit + float(item[1])
             margin = margin - 0.055
          
-        # if Record[-1][2] == 'Buy':
-        #     Profit = Profit + float(Record[-1][1])  # offset last buy signal
+        if Record[-1][2] == 'Buy':
+            Profit = Profit + float(Record[-1][1])  # offset last buy signal
 
         ax.text(0.9, 1.05, f"Daily Profit: ${str(round(Profit, 3))}",
                 bbox = dict(facecolor='white', alpha = 0.5),
@@ -235,7 +235,8 @@ def animate(i):
     global total_profit
     
     if not data_day.empty:
-        Profit = main_plot(data_day, ax1, current_date, showMA=False, showBB=False, apply_strategy=True)
+        Profit = main_plot(data_day, ax1, current_date, showMA=False, showBB=False, 
+                           apply_strategy=True, strategy_func=MACD_Strategy)
         subplot_MACD(data_day, ax2)
         subplot_RSI(data_day, ax3)
         total_profit = compute_profit(i, total_profit, Profit, ax1)
