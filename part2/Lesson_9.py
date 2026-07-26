@@ -39,8 +39,14 @@ def compute_BollingerBands(df, n, m):
     return df
 
 
-def compute_profit(i, Profit, ax: matplotlib.axes.Axes):
-    pass
+def compute_profit(i, total_profit, Profit, ax: matplotlib.axes.Axes):
+    total_profit = total_profit + Profit
+    ax.text(0.9, 1.15, f'Total Profit: ${str(round(total_profit, 3))}',
+            bbox = dict(facecolor='#FF7A01', alpha = 0.5),
+            transform=ax.transAxes, color='white', fontsize=10, fontweight='bold',
+            horizontalalignment='left', verticalalignment='center')
+    return total_profit
+
 
 def backtest_day(i, data_full):
     time_stamp = date_list[i]   # retrieve a timestamp
@@ -53,9 +59,51 @@ def backtest_day(i, data_full):
     return data_day, time_stamp
     
 
-def MA_strategy(data):
-    pass
+def MA_strategy(data: pd.DataFrame):
+    data['MA5'] = data['close'].rolling(5).mean()
+    data['MA10'] = data['close'].rolling(10).mean()
+    data['MA20'] = data['close'].rolling(20).mean()  
 
+    Buy = []            # show buy in the graph
+    Sell = []           # show sell in the graph
+    Record = []         # record buy and sell
+    position = False    # no short selling
+    
+    for i in range(len(data['close'])):
+        if pd.notna(data['MA20'][i]):
+            if (data['MA5'][i] > data['MA10'][i]) & (data['MA5'][i] > data['MA20'][i]): 
+                # Buy Signal
+                if position == False:    # don't hold stock
+                    Buy.append(data['close'][i])
+                    Sell.append(np.nan)
+                    position = True      # reset 
+                    Record.append([i, data['close'][i], 'Buy'])
+                else:
+                    Buy.append(np.nan)
+                    Sell.append(np.nan)
+            elif (data['MA5'][i] < data['MA10'][i]) & (data['MA5'][i] < data['MA20'][i]):
+                # Sell Signal
+                if position == True:    # hold stock
+                    Buy.append(np.nan)
+                    Sell.append(data['close'][i])
+                    position = False    # reset
+                    Record.append([i, data['close'][i], "Sell"])
+                else:
+                    Buy.append(np.nan)
+                    Sell.append(np.nan)
+            else:
+                # Do nothing.
+                Buy.append(np.nan)
+                Sell.append(np.nan)
+        else:
+            # Do nothing.
+            Buy.append(np.nan)
+            Sell.append(np.nan) 
+    
+    data['Buy'] = Buy
+    data['Sell'] = Sell
+    return data, Record
+    
 
 def figure_design(ax):
     ax.set_facecolor("#091217")
@@ -110,7 +158,38 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, MA=True):
         plt.setp(leg.get_texts(), color='w')
         
     if MA == True:
+        # MA quant strategy
+        data, Record = MA_strategy(data)
+        
+        # Buy and Sell signal scatter plot
+        ax.scatter(data.index, data['Buy'], label="Buy", marker='^', color = "#FF6FFF", alpha=1, s=100)
+        ax.scatter(data.index, data['Sell'], label="Sell", marker='v', color = "#00FFBD", alpha=1, s=100)
+        
+        # Buy and Sell information on the right bar
         Profit = 0
+        margin = 0.95
+        for i, item in enumerate(Record):
+            message = f"{i+1} {item[2]}@{item[1]}"
+            if item[2] == 'Buy':
+                ax.text(1.01, margin, message, bbox=dict(facecolor="#FF6FFF", alpha=0.5),
+                         transform=ax.transAxes, color='white', fontsize=9, fontweight='bold',
+                         horizontalalignment='left', verticalalignment='center')
+                Profit = Profit - float(item[1])
+            else:
+                ax.text(1.01, margin, message, bbox=dict(facecolor="#00FFBD", alpha=0.5),
+                         transform=ax.transAxes, color='white', fontsize=9, fontweight='bold',
+                         horizontalalignment='left', verticalalignment='center')
+                Profit = Profit + float(item[1])
+            margin = margin - 0.055
+         
+        if Record[-1][2] == 'Buy':
+            Profit = Profit + float(Record[-1][1])  # offset last buy signal
+
+        ax.text(0.9, 1.05, f"Daily Profit: ${str(round(Profit, 3))}",
+                bbox = dict(facecolor='white', alpha = 0.5),
+                transform=ax.transAxes, color='black', fontsize=10, fontweight='bold',
+                horizontalalignment='left', verticalalignment='center')
+        
     else:
         Profit = 0
     
@@ -193,20 +272,20 @@ ax3 = fig.add_subplot(gs[5, 0:6])
 
 
 data_full = pd.read_csv("AAPL/AAPL_2024-07-01_to_2026-07-01_cp2.csv", header=0)
-
 date_list = sorted(set([x[0:10] for x in data_full['datetime']]))   # all trading dates
-
+total_profit = 0.0
 
 def animate(i):
     data_day, current_date = backtest_day(i, data_full)
+    global total_profit
     
     if not data_day.empty:
         Profit = main_plot(data_day, ax1, current_date)
         subplot_MACD(data_day, ax2)
         subplot_RSI(data_day, ax3)
-        # compute_profit(i, Profit, ax1)
+        total_profit = compute_profit(i, total_profit, Profit, ax1)
 
 
-ani = animation.FuncAnimation(fig, animate, interval=1000)
-# animate(1)
+ani = animation.FuncAnimation(fig, animate, interval=100)
+# animate(0)
 plt.show()
