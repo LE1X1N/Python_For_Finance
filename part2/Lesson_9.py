@@ -7,6 +7,7 @@ import matplotlib.ticker as mticker
 import matplotlib.animation as animation
 from mplfinance.original_flavor import candlestick_ohlc
 
+from Strategies import MA_Crossover_Strategy
 
 def compute_RSI(data, time_window):
     diff = data.diff(1).dropna()
@@ -59,50 +60,50 @@ def backtest_day(i, data_full):
     return data_day, time_stamp
     
 
-def MA_strategy(data: pd.DataFrame):
-    data['MA5'] = data['close'].rolling(5).mean()
-    data['MA10'] = data['close'].rolling(10).mean()
-    data['MA20'] = data['close'].rolling(20).mean()  
+# def MA_strategy(data: pd.DataFrame):
+#     data['MA5'] = data['close'].rolling(5).mean()
+#     data['MA10'] = data['close'].rolling(10).mean()
+#     data['MA20'] = data['close'].rolling(20).mean()  
 
-    Buy = []            # show buy in the graph
-    Sell = []           # show sell in the graph
-    Record = []         # record buy and sell
-    position = False    # no short selling
+#     Buy = []            # show buy in the graph
+#     Sell = []           # show sell in the graph
+#     Record = []         # record buy and sell
+#     position = False    # no short selling
     
-    for i in range(len(data['close'])):
-        if pd.notna(data['MA20'][i]):
-            if (data['MA5'][i] > data['MA10'][i]) & (data['MA5'][i] > data['MA20'][i]): 
-                # Buy Signal
-                if position == False:    # don't hold stock
-                    Buy.append(data['close'][i])
-                    Sell.append(np.nan)
-                    position = True      # reset 
-                    Record.append([i, data['close'][i], 'Buy'])
-                else:
-                    Buy.append(np.nan)
-                    Sell.append(np.nan)
-            elif (data['MA5'][i] < data['MA10'][i]) & (data['MA5'][i] < data['MA20'][i]):
-                # Sell Signal
-                if position == True:    # hold stock
-                    Buy.append(np.nan)
-                    Sell.append(data['close'][i])
-                    position = False    # reset
-                    Record.append([i, data['close'][i], "Sell"])
-                else:
-                    Buy.append(np.nan)
-                    Sell.append(np.nan)
-            else:
-                # Do nothing.
-                Buy.append(np.nan)
-                Sell.append(np.nan)
-        else:
-            # Do nothing.
-            Buy.append(np.nan)
-            Sell.append(np.nan) 
+#     for i in range(len(data['close'])):
+#         if pd.notna(data['MA20'][i]):
+#             if (data['MA5'][i] > data['MA10'][i]) & (data['MA5'][i] > data['MA20'][i]): 
+#                 # Buy Signal
+#                 if position == False:    # don't hold stock
+#                     Buy.append(data['close'][i])
+#                     Sell.append(np.nan)
+#                     position = True      # reset 
+#                     Record.append([i, data['close'][i], 'Buy'])
+#                 else:
+#                     Buy.append(np.nan)
+#                     Sell.append(np.nan)
+#             elif (data['MA5'][i] < data['MA10'][i]) & (data['MA5'][i] < data['MA20'][i]):
+#                 # Sell Signal
+#                 if position == True:    # hold stock
+#                     Buy.append(np.nan)
+#                     Sell.append(data['close'][i])
+#                     position = False    # reset
+#                     Record.append([i, data['close'][i], "Sell"])
+#                 else:
+#                     Buy.append(np.nan)
+#                     Sell.append(np.nan)
+#             else:
+#                 # Do nothing.
+#                 Buy.append(np.nan)
+#                 Sell.append(np.nan)
+#         else:
+#             # Do nothing.
+#             Buy.append(np.nan)
+#             Sell.append(np.nan) 
     
-    data['Buy'] = Buy
-    data['Sell'] = Sell
-    return data, Record
+#     data['Buy'] = Buy
+#     data['Sell'] = Sell
+#     return data, Record
     
 
 def figure_design(ax):
@@ -158,8 +159,8 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, MA=True):
         plt.setp(leg.get_texts(), color='w')
         
     if MA == True:
-        # MA quant strategy
-        data, Record = MA_strategy(data)
+        # quant strategy
+        data, Record = MA_Crossover_Strategy(data)
         
         # Buy and Sell signal scatter plot
         ax.scatter(data.index, data['Buy'], label="Buy", marker='^', color = "#FF6FFF", alpha=1, s=100)
