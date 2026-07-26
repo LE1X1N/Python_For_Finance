@@ -137,8 +137,8 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, apply_strategy=T
                 Profit = Profit + float(item[1])
             margin = margin - 0.055
          
-        if Record[-1][2] == 'Buy':
-            Profit = Profit + float(Record[-1][1])  # offset last buy signal
+        # if Record[-1][2] == 'Buy':
+        #     Profit = Profit + float(Record[-1][1])  # offset last buy signal
 
         ax.text(0.9, 1.05, f"Daily Profit: ${str(round(Profit, 3))}",
                 bbox = dict(facecolor='white', alpha = 0.5),
@@ -235,7 +235,7 @@ def animate(i):
     global total_profit
     
     if not data_day.empty:
-        Profit = main_plot(data_day, ax1, current_date)
+        Profit = main_plot(data_day, ax1, current_date, showMA=False, showBB=False, apply_strategy=True)
         subplot_MACD(data_day, ax2)
         subplot_RSI(data_day, ax3)
         total_profit = compute_profit(i, total_profit, Profit, ax1)
