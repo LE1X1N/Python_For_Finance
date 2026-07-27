@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import pandas_ta as ta
 
+import deprecation
+
 def MA_Crossover_Strategy(data: pd.DataFrame):
     data['MA5'] = data['close'].rolling(5).mean()
     data['MA10'] = data['close'].rolling(10).mean()
@@ -53,7 +55,8 @@ def MA_Crossover_Strategy(data: pd.DataFrame):
     return data, Record
 
 
-def MACD_Crossover_Strategy(data: pd.DataFrame):
+@deprecation.deprecated("This function has been deprecated, use MACD_Crossover_Strategy instead.")
+def MACD_Strategy(data: pd.DataFrame):
     macd = ta.momentum.macd(data['close']) * 100    # percentage
     macd.rename(columns={'MACD_12_26_9': 'MACD', 'MACDh_12_26_9': 'Histogram', 'MACDs_12_26_9': 'Signal'}, inplace=True)
     data = pd.concat([data, macd], axis=1).reindex(data.index)
@@ -125,6 +128,7 @@ def MACD_Crossover_Strategy(data: pd.DataFrame):
     return data, Record
 
 
+@deprecation.deprecated("This function has been deprecated, use RSI_Crossover_Strategy instead.")
 def RSI_Strategy(data: pd.DataFrame):
     data['RSI'] = ta.momentum.rsi(data['close'], 14)
  
