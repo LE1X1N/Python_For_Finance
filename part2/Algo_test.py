@@ -106,6 +106,9 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, showEMA=True, ap
         ax.plot(data["BBU"], color="#666699", linestyle="-", linewidth=0.2)
         ax.plot(data["BBL"], color="#666699", linestyle="-", linewidth=0.2)
     
+    if showEMA == True:
+        data['EMA'] = data['close'].ewm(span=20, adjust=False).mean()
+        ax.plot(data['EMA'], color='#08a0e9', linestyle='-', linewidth=1, label="20 periods EMA")
     
     if showMA or showBB or showEMA:
         leg = ax.legend(loc='upper left', facecolor="#121416", fontsize=10)
