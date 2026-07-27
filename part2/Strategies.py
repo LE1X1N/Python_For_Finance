@@ -5,54 +5,91 @@ import pandas_ta as ta
 import deprecation
 from typing import Literal
 
-def MA_Crossover_Strategy(data: pd.DataFrame):
+
+def MA_Crossover_Strategy(data: pd.DataFrame, direction: Literal["both", "long", "short"]="both"):
+    assert direction in ["both", "long", "short"], "direction should be chosen from (both / long / short)"
+        
     data['MA5'] = data['close'].rolling(5).mean()
     data['MA10'] = data['close'].rolling(10).mean()
     data['MA20'] = data['close'].rolling(20).mean()  
 
-    Buy = []            # show buy in the graph
-    Sell = []           # show sell in the graph
-    Record = []         # record buy and sell
-    position = False    # no short selling
+    OpenLong = []            # long signal
+    CloseLong = []
+    OpenShort = []           # short signal
+    CloseShort = []
+    Record = []          # record trade signal
+    Long_position = False   
+    Short_position = False
+    
+    def empty_signal():
+        OpenLong.append(np.nan)
+        CloseLong.append(np.nan)
+        OpenShort.append(np.nan)
+        CloseShort.append(np.nan)
     
     for i in range(len(data['close'])):
         if pd.notna(data['MA20'][i]):
             if (data['MA5'][i] > data['MA10'][i]) & (data['MA5'][i] > data['MA20'][i]): 
-                # Buy Signal
-                if position == False:    # don't hold stock
-                    Buy.append(data['close'][i])
-                    Sell.append(np.nan)
-                    position = True      # reset 
-                    Record.append([i, data['close'][i], 'Buy'])
+                if not Long_position and not Short_position:   # 开多
+                    if direction in ("both", "long"):
+                        OpenLong.append(data['close'][i])   
+                        CloseLong.append(np.nan)
+                        OpenShort.append(np.nan)
+                        CloseShort.append(np.nan)
+                        Long_position = True
+                        Short_position = False
+                        Record.append([i, data['close'][i], 'OpenLong'])
+                    else:
+                        empty_signal()
+                elif Short_position and not Long_position:    # 平空
+                    OpenLong.append(np.nan)   
+                    CloseLong.append(np.nan)
+                    OpenShort.append(np.nan)
+                    CloseShort.append(data['close'][i])
+                    Long_position = False
+                    Short_position = False
+                    Record.append([i, data['close'][i], 'CloseShort'])
                 else:
-                    Buy.append(np.nan)
-                    Sell.append(np.nan)
+                    empty_signal()   
             elif (data['MA5'][i] < data['MA10'][i]) & (data['MA5'][i] < data['MA20'][i]):
-                # Sell Signal
-                if position == True:    # hold stock
-                    Buy.append(np.nan)
-                    Sell.append(data['close'][i])
-                    position = False    # reset
-                    Record.append([i, data['close'][i], "Sell"])
+                if Long_position and not Short_position:        # 平多
+                    OpenLong.append(np.nan)
+                    CloseLong.append(data['close'][i])
+                    OpenShort.append(np.nan)
+                    CloseShort.append(np.nan)
+                    Long_position = False
+                    Short_position = False
+                    Record.append([i, data['close'][i], 'CloseLong']) 
+                elif not Short_position and not Long_position:  # 开空
+                    if direction in ("both", "short"):
+                        OpenLong.append(np.nan)
+                        CloseLong.append(np.nan)
+                        OpenShort.append(data['close'][i])
+                        CloseShort.append(np.nan)
+                        Long_position = False
+                        Short_position = True
+                        Record.append([i, data['close'][i], 'OpenShort'])
+                    else:
+                        empty_signal()
                 else:
-                    Buy.append(np.nan)
-                    Sell.append(np.nan)
+                    empty_signal()
             else:
-                # Do nothing.
-                Buy.append(np.nan)
-                Sell.append(np.nan)
+                empty_signal()
         else:
-            # Do nothing.
-            Buy.append(np.nan)
-            Sell.append(np.nan) 
+            empty_signal()
     
-    if len(Record) % 2:
-        if Record[-1][2] == 'Buy':
-            Buy[Record[-1][0]] = np.nan
+    if len(Record) % 2 == 1:
+        if Record[-1][2] == 'OpenLong':
+            OpenLong[Record[-1][0]] = np.nan
+        if Record[-1][2] == 'OpenShort':
+            OpenShort[Record[-1][0]] = np.nan
         Record.pop()
     
-    data['Buy'] = Buy
-    data['Sell'] = Sell
+    data['OpenLong'] = OpenLong
+    data['CloseLong'] = CloseLong
+    data['OpenShort'] = OpenShort
+    data['CloseShort'] = CloseShort
+    
     return data, Record
 
 
@@ -239,6 +276,57 @@ def RSI_Crossover_Strategy(data: pd.DataFrame, direction: Literal["both", "long"
     
     return data, Record
 
+
+@deprecation.deprecated("This function has been deprecated, use MA_Crossover_Strategy instead.")
+def MA_Strategy(data: pd.DataFrame):
+    data['MA5'] = data['close'].rolling(5).mean()
+    data['MA10'] = data['close'].rolling(10).mean()
+    data['MA20'] = data['close'].rolling(20).mean()  
+
+    Buy = []            # show buy in the graph
+    Sell = []           # show sell in the graph
+    Record = []         # record buy and sell
+    position = False    # no short selling
+    
+    for i in range(len(data['close'])):
+        if pd.notna(data['MA20'][i]):
+            if (data['MA5'][i] > data['MA10'][i]) & (data['MA5'][i] > data['MA20'][i]): 
+                # Buy Signal
+                if position == False:    # don't hold stock
+                    Buy.append(data['close'][i])
+                    Sell.append(np.nan)
+                    position = True      # reset 
+                    Record.append([i, data['close'][i], 'Buy'])
+                else:
+                    Buy.append(np.nan)
+                    Sell.append(np.nan)
+            elif (data['MA5'][i] < data['MA10'][i]) & (data['MA5'][i] < data['MA20'][i]):
+                # Sell Signal
+                if position == True:    # hold stock
+                    Buy.append(np.nan)
+                    Sell.append(data['close'][i])
+                    position = False    # reset
+                    Record.append([i, data['close'][i], "Sell"])
+                else:
+                    Buy.append(np.nan)
+                    Sell.append(np.nan)
+            else:
+                # Do nothing.
+                Buy.append(np.nan)
+                Sell.append(np.nan)
+        else:
+            # Do nothing.
+            Buy.append(np.nan)
+            Sell.append(np.nan) 
+    
+    if len(Record) % 2:
+        if Record[-1][2] == 'Buy':
+            Buy[Record[-1][0]] = np.nan
+        Record.pop()
+    
+    data['Buy'] = Buy
+    data['Sell'] = Sell
+    return data, Record
 
 @deprecation.deprecated("This function has been deprecated, use MACD_Crossover_Strategy instead.")
 def MACD_Strategy(data: pd.DataFrame):
