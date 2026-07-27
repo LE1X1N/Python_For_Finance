@@ -196,9 +196,9 @@ def subplot_RSI(data: pd.DataFrame, ax: matplotlib.axes.Axes):
 
 
 
-def apply_strategy(strategy_func: Callable, data: pd.DataFrame, ax: matplotlib.axes.Axes):
+def apply_strategy(data: pd.DataFrame, ax: matplotlib.axes.Axes, strategy_func: Callable, direction: str):
     # choose a strategy
-    data, Record = strategy_func(data)  
+    data, Record = strategy_func(data, direction)  
         
     # Open and Short signal scatter plot
     ax.scatter(data.index, data['OpenLong'], label="OpenLong", marker='^', color = "#FF6FFF", alpha=1, s=100)
@@ -258,10 +258,9 @@ def animate(i):
         subplot_MACD(data_day, ax2)
         subplot_RSI(data_day, ax3)
         
-        profit = apply_strategy(MACD_Crossover_Strategy, data_day, ax1)
+        profit = apply_strategy(data_day, ax1, MA_Crossover_Strategy, direction="both")
         total_profit = compute_profit(i, total_profit, profit, ax1)
 
-
-ani = animation.FuncAnimation(fig, animate, interval=100)
-# animate(0)
+# ani = animation.FuncAnimation(fig, animate, interval=100)
+animate(0)
 plt.show()
