@@ -251,7 +251,7 @@ def animate(i):
         subplot_MACD(data_day, ax2)
         subplot_RSI(data_day, ax3)
         
-        profit = apply_strategy(MACD_Crossover_Strategy, data_day, ax1)
+        profit = apply_strategy(RSI_Strategy, data_day, ax1)
         total_profit = compute_profit(i, total_profit, profit, ax1)
 
 

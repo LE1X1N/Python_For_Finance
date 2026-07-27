@@ -123,3 +123,71 @@ def MACD_Crossover_Strategy(data: pd.DataFrame):
     data['Buy'] = Buy
     data['Sell'] = Sell
     return data, Record
+
+
+def RSI_Strategy(data: pd.DataFrame):
+    data['RSI'] = ta.momentum.rsi(data['close'], 14)
+ 
+    Buy = []            # show buy in the graph
+    Sell = []           # show sell in the graph
+    Record = []         # record buy and sell
+    Buy_position = False   
+    Sell_position = False
+    
+    for i in range(len(data['close'])):
+        if i == 0:
+            Buy.append(np.nan)
+            Sell.append(np.nan)
+        elif pd.notna(data['RSI'][i-1]):
+            if ((data['RSI'][i-1] < 30) & (data['RSI'][i] > 30)):   # oversold
+                # Check the buying signal
+                if Sell_position == True:
+                    Buy.append(data['close'][i])
+                    Sell.append(np.nan)
+                    Buy_position = False
+                    Sell_position = False
+                    Record.append([i, data['close'][i], 'Buy'])
+                elif Buy_position == False:
+                    Buy.append(data['close'][i])
+                    Sell.append(np.nan)
+                    Buy_position = True
+                    Sell_position = False
+                    Record.append([i, data['close'][i], 'Buy'])    
+                else:
+                    Buy.append(np.nan)
+                    Sell.append(np.nan)      
+                          
+            elif ((data['RSI'][i-1] > 70) & (data['RSI'][i] < 70)):
+                # Check the selling signal
+                if Buy_position == True:
+                    Buy.append(np.nan)
+                    Sell.append(data['close'][i])
+                    Buy_position = False
+                    Sell_position = False
+                    Record.append([i, data['close'][i], 'Sell']) 
+                elif Sell_position == False:    # short-sell
+                    Buy.append(np.nan)
+                    Sell.append(data['close'][i])
+                    Buy_position = False
+                    Sell_position = True
+                    Record.append([i, data['close'][i], 'Sell'])
+                else:
+                    Buy.append(np.nan)
+                    Sell.append(np.nan)
+            else:
+                Buy.append(np.nan)
+                Sell.append(np.nan)
+        else:
+            Buy.append(np.nan)
+            Sell.append(np.nan)
+    
+    if len(Record) % 2:
+        if Record[-1][2] == 'Buy':
+            Buy[Record[-1][0]] = np.nan
+        if Record[-1][2] == 'Sell':
+            Sell[Record[-1][0]] = np.nan
+        Record.pop()
+    
+    data['Buy'] = Buy
+    data['Sell'] = Sell
+    return data, Record
