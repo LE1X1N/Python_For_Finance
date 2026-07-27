@@ -71,7 +71,7 @@ def figure_design(ax):
     ax.spines['right'].set_color("#808080")
 
 
-def main_plot(data, ax, current_date, showMA=True, showBB=True, showEMA=True, apply_strategy=True, strategy_func=None):
+def main_plot(data, ax, current_date, showMA=True, showBB=True, showEMA=True):
     candle_counter = range(len(data["open"]) - 1)
     ohlc = []
     
@@ -80,11 +80,9 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, showEMA=True, ap
         ohlc.append(append_me)
         
     ax.clear()
-    
-    if apply_strategy == True:
-        candlestick_ohlc(ax, ohlc, width=0.4, colorup="#8B0000", colordown="#006400")
-    else:
-        candlestick_ohlc(ax, ohlc, width=0.4, colorup="#ff3503", colordown="#18b800")
+
+    candlestick_ohlc(ax, ohlc, width=0.4, colorup="#8B0000", colordown="#006400")
+    # candlestick_ohlc(ax, ohlc, width=0.4, colorup="#ff3503", colordown="#18b800")
 
     if showMA == True:
         data['MA5'] = data['close'].rolling(5).mean()
@@ -116,40 +114,6 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, showEMA=True, ap
         # for text in leg.get_texts():
         #     text.set_color('w')
         plt.setp(leg.get_texts(), color='w')
-    
-    
-    # if apply_strategy == True:
-    #     # choose a strategy
-    #     data, Record = strategy_func(data)  
-        
-    #     # Buy and Sell signal scatter plot
-    #     ax.scatter(data.index, data['Buy'], label="Buy", marker='^', color = "#FF6FFF", alpha=1, s=100)
-    #     ax.scatter(data.index, data['Sell'], label="Sell", marker='v', color = "#00FFBD", alpha=1, s=100)
-        
-    #     # Buy and Sell information on the right bar
-    #     Profit = 0
-    #     margin = 0.95
-    #     for i, item in enumerate(Record):
-    #         message = f"{i+1} {item[2]}@{item[1]}"
-    #         if item[2] == 'Buy':
-    #             ax.text(1.01, margin, message, bbox=dict(facecolor="#FF6FFF", alpha=0.5),
-    #                      transform=ax.transAxes, color='white', fontsize=9, fontweight='bold',
-    #                      horizontalalignment='left', verticalalignment='center')
-    #             Profit = Profit - float(item[1])
-    #         else:
-    #             ax.text(1.01, margin, message, bbox=dict(facecolor="#00FFBD", alpha=0.5),
-    #                      transform=ax.transAxes, color='white', fontsize=9, fontweight='bold',
-    #                      horizontalalignment='left', verticalalignment='center')
-    #             Profit = Profit + float(item[1])
-    #         margin = margin - 0.055
-
-    #     ax.text(0.9, 1.05, f"Daily Profit: ${str(round(Profit, 3))}",
-    #             bbox = dict(facecolor='white', alpha = 0.5),
-    #             transform=ax.transAxes, color='black', fontsize=10, fontweight='bold',
-    #             horizontalalignment='left', verticalalignment='center')
-        
-    # else:
-    #     Profit = 0
     
     figure_design(ax)
     
@@ -233,7 +197,6 @@ def subplot_RSI(data: pd.DataFrame, ax: matplotlib.axes.Axes):
 
 
 def apply_strategy(strategy_func: Callable, data: pd.DataFrame, ax: matplotlib.axes.Axes):
-    
     # choose a strategy
     data, Record = strategy_func(data)  
         
