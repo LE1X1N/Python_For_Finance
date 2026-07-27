@@ -236,7 +236,7 @@ def animate(i):
     
     if not data_day.empty:
         Profit = main_plot(data_day, ax1, current_date, showMA=False, showBB=False, 
-                           apply_strategy=True, strategy_func=MACD_Strategy)
+                           apply_strategy=True, strategy_func=MACD_Crossover_Strategy)
         subplot_MACD(data_day, ax2)
         subplot_RSI(data_day, ax3)
         total_profit = compute_profit(i, total_profit, Profit, ax1)

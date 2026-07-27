@@ -53,7 +53,7 @@ def MA_Crossover_Strategy(data: pd.DataFrame):
     return data, Record
 
 
-def MACD_Strategy(data: pd.DataFrame):
+def MACD_Crossover_Strategy(data: pd.DataFrame):
     macd = ta.momentum.macd(data['close']) * 100    # percentage
     macd.rename(columns={'MACD_12_26_9': 'MACD', 'MACDh_12_26_9': 'Histogram', 'MACDs_12_26_9': 'Signal'}, inplace=True)
     data = pd.concat([data, macd], axis=1).reindex(data.index)
