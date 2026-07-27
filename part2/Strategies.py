@@ -141,6 +141,87 @@ def MACD_Crossover_Strategy(data: pd.DataFrame):
     return data, Record
 
 
+def RSI_Crossover_Strategy(data: pd.DataFrame):
+    data['RSI'] = ta.momentum.rsi(data['close'], 14)
+ 
+    OpenLong = []            # long signal
+    CloseLong = []
+    OpenShort = []           # short signal
+    CloseShort = []
+    Record = []          # record trade signal
+    Long_position = False   
+    Short_position = False
+    
+    def empty_signal():
+        OpenLong.append(np.nan)
+        CloseLong.append(np.nan)
+        OpenShort.append(np.nan)
+        CloseShort.append(np.nan)
+    
+    for i in range(len(data['close'])):
+        if i == 0:
+            empty_signal()
+        elif pd.notna(data['RSI'][i-1]):
+            if ((data['RSI'][i-1] < 30) & (data['RSI'][i] > 30)):   # oversold
+                # Check the OpenLong or CloseShort position
+                if not Long_position and not Short_position:  # 开多
+                    OpenLong.append(data['close'][i])   
+                    CloseLong.append(np.nan)
+                    OpenShort.append(np.nan)
+                    CloseShort.append(np.nan)
+                    Long_position = True
+                    Short_position = False
+                    Record.append([i, data['close'][i], 'OpenLong'])
+                elif Short_position and not Long_position:    # 平空
+                    OpenLong.append(np.nan)   
+                    CloseLong.append(np.nan)
+                    OpenShort.append(np.nan)
+                    CloseShort.append(data['close'][i])
+                    Long_position = False
+                    Short_position = False
+                    Record.append([i, data['close'][i], 'CloseShort'])
+                else:
+                    empty_signal()      
+                          
+            elif ((data['RSI'][i-1] > 70) & (data['RSI'][i] < 70)):  # overbought
+                # Check the CloseLong or OpenShort position
+                if Long_position and not Short_position:       # 平多
+                    OpenLong.append(np.nan)
+                    CloseLong.append(data['close'][i])
+                    OpenShort.append(np.nan)
+                    CloseShort.append(np.nan)
+                    Long_position = False
+                    Short_position = False
+                    Record.append([i, data['close'][i], 'CloseLong']) 
+                elif not Short_position and not Long_position:  # 开空
+                    OpenLong.append(np.nan)
+                    CloseLong.append(np.nan)
+                    OpenShort.append(data['close'][i])
+                    CloseShort.append(np.nan)
+                    Long_position = False
+                    Short_position = True
+                    Record.append([i, data['close'][i], 'OpenShort'])
+                else:
+                    empty_signal()
+            else:
+                empty_signal()
+        else:
+            empty_signal()
+    
+    if len(Record) % 2 == 1:
+        if Record[-1][2] == 'OpenLong':
+            OpenLong[Record[-1][0]] = np.nan
+        if Record[-1][2] == 'OpenShort':
+            OpenShort[Record[-1][0]] = np.nan
+        Record.pop()
+    
+    data['OpenLong'] = OpenLong
+    data['CloseLong'] = CloseLong
+    data['OpenShort'] = OpenShort
+    data['CloseShort'] = CloseShort
+    
+    return data, Record
+
 
 @deprecation.deprecated("This function has been deprecated, use MACD_Crossover_Strategy instead.")
 def MACD_Strategy(data: pd.DataFrame):
@@ -248,7 +329,7 @@ def RSI_Strategy(data: pd.DataFrame):
                     Buy.append(np.nan)
                     Sell.append(np.nan)      
                           
-            elif ((data['RSI'][i-1] > 70) & (data['RSI'][i] < 70)):
+            elif ((data['RSI'][i-1] > 70) & (data['RSI'][i] < 70)):  # overbought
                 # Check the selling signal
                 if Buy_position == True:
                     Buy.append(np.nan)
