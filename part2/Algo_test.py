@@ -5,6 +5,7 @@ import matplotlib
 import matplotlib.pyplot as plt  
 import matplotlib.ticker as mticker
 import matplotlib.animation as animation
+from typing import Callable
 from mplfinance.original_flavor import candlestick_ohlc
 
 from Strategies import *
@@ -117,38 +118,38 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, showEMA=True, ap
         plt.setp(leg.get_texts(), color='w')
     
     
-    if apply_strategy == True:
-        # choose a strategy
-        data, Record = strategy_func(data)  
+    # if apply_strategy == True:
+    #     # choose a strategy
+    #     data, Record = strategy_func(data)  
         
-        # Buy and Sell signal scatter plot
-        ax.scatter(data.index, data['Buy'], label="Buy", marker='^', color = "#FF6FFF", alpha=1, s=100)
-        ax.scatter(data.index, data['Sell'], label="Sell", marker='v', color = "#00FFBD", alpha=1, s=100)
+    #     # Buy and Sell signal scatter plot
+    #     ax.scatter(data.index, data['Buy'], label="Buy", marker='^', color = "#FF6FFF", alpha=1, s=100)
+    #     ax.scatter(data.index, data['Sell'], label="Sell", marker='v', color = "#00FFBD", alpha=1, s=100)
         
-        # Buy and Sell information on the right bar
-        Profit = 0
-        margin = 0.95
-        for i, item in enumerate(Record):
-            message = f"{i+1} {item[2]}@{item[1]}"
-            if item[2] == 'Buy':
-                ax.text(1.01, margin, message, bbox=dict(facecolor="#FF6FFF", alpha=0.5),
-                         transform=ax.transAxes, color='white', fontsize=9, fontweight='bold',
-                         horizontalalignment='left', verticalalignment='center')
-                Profit = Profit - float(item[1])
-            else:
-                ax.text(1.01, margin, message, bbox=dict(facecolor="#00FFBD", alpha=0.5),
-                         transform=ax.transAxes, color='white', fontsize=9, fontweight='bold',
-                         horizontalalignment='left', verticalalignment='center')
-                Profit = Profit + float(item[1])
-            margin = margin - 0.055
+    #     # Buy and Sell information on the right bar
+    #     Profit = 0
+    #     margin = 0.95
+    #     for i, item in enumerate(Record):
+    #         message = f"{i+1} {item[2]}@{item[1]}"
+    #         if item[2] == 'Buy':
+    #             ax.text(1.01, margin, message, bbox=dict(facecolor="#FF6FFF", alpha=0.5),
+    #                      transform=ax.transAxes, color='white', fontsize=9, fontweight='bold',
+    #                      horizontalalignment='left', verticalalignment='center')
+    #             Profit = Profit - float(item[1])
+    #         else:
+    #             ax.text(1.01, margin, message, bbox=dict(facecolor="#00FFBD", alpha=0.5),
+    #                      transform=ax.transAxes, color='white', fontsize=9, fontweight='bold',
+    #                      horizontalalignment='left', verticalalignment='center')
+    #             Profit = Profit + float(item[1])
+    #         margin = margin - 0.055
 
-        ax.text(0.9, 1.05, f"Daily Profit: ${str(round(Profit, 3))}",
-                bbox = dict(facecolor='white', alpha = 0.5),
-                transform=ax.transAxes, color='black', fontsize=10, fontweight='bold',
-                horizontalalignment='left', verticalalignment='center')
+    #     ax.text(0.9, 1.05, f"Daily Profit: ${str(round(Profit, 3))}",
+    #             bbox = dict(facecolor='white', alpha = 0.5),
+    #             transform=ax.transAxes, color='black', fontsize=10, fontweight='bold',
+    #             horizontalalignment='left', verticalalignment='center')
         
-    else:
-        Profit = 0
+    # else:
+    #     Profit = 0
     
     figure_design(ax)
     
@@ -157,8 +158,7 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, showEMA=True, ap
         
     ax.grid(True, color='grey', linestyle='-', which='major', axis='both', linewidth=0.3)
     ax.set_xticklabels([])
-    
-    return Profit
+
 
 def subplot_MACD(data: pd.DataFrame, ax: matplotlib.axes.Axes):
     # Moving Average Convergence Divergence
@@ -231,6 +231,41 @@ def subplot_RSI(data: pd.DataFrame, ax: matplotlib.axes.Axes):
     ax.grid(True, color='grey', linestyle='-', which='major')
 
 
+
+def apply_strategy(strategy_func: Callable, data: pd.DataFrame, ax: matplotlib.axes.Axes):
+    
+    # choose a strategy
+    data, Record = strategy_func(data)  
+        
+    # Buy and Sell signal scatter plot
+    ax.scatter(data.index, data['Buy'], label="Buy", marker='^', color = "#FF6FFF", alpha=1, s=100)
+    ax.scatter(data.index, data['Sell'], label="Sell", marker='v', color = "#00FFBD", alpha=1, s=100)
+        
+    # Buy and Sell information on the right bar
+    profit = 0
+    margin = 0.95
+    for i, item in enumerate(Record):
+        message = f"{i+1} {item[2]}@{item[1]}"
+        if item[2] == 'Buy':
+            ax.text(1.01, margin, message, bbox=dict(facecolor="#FF6FFF", alpha=0.5),
+                        transform=ax.transAxes, color='white', fontsize=9, fontweight='bold',
+                        horizontalalignment='left', verticalalignment='center')
+            profit = profit - float(item[1])
+        else:
+            ax.text(1.01, margin, message, bbox=dict(facecolor="#00FFBD", alpha=0.5),
+                        transform=ax.transAxes, color='white', fontsize=9, fontweight='bold',
+                        horizontalalignment='left', verticalalignment='center')
+            profit = profit + float(item[1])
+        margin = margin - 0.055
+
+    ax.text(0.9, 1.05, f"Daily Profit: ${str(round(profit, 3))}",
+            bbox = dict(facecolor='white', alpha = 0.5),
+            transform=ax.transAxes, color='black', fontsize=10, fontweight='bold',
+            horizontalalignment='left', verticalalignment='center')
+    return profit
+
+
+
 fig = plt.figure(figsize=(16.0, 10.0))
 fig.patch.set_facecolor("#121416")
 gs = fig.add_gridspec(6, 6)
@@ -249,13 +284,14 @@ def animate(i):
     global total_profit
     
     if not data_day.empty:
-        Profit = main_plot(data_day, ax1, current_date, showMA=False, showBB=False, showEMA=True,
-                           apply_strategy=True, strategy_func=MACD_Crossover_Strategy)
+        main_plot(data_day, ax1, current_date, showMA=False, showBB=False, showEMA=True)
         subplot_MACD(data_day, ax2)
         subplot_RSI(data_day, ax3)
-        total_profit = compute_profit(i, total_profit, Profit, ax1)
+        
+        profit = apply_strategy(MACD_Crossover_Strategy, data_day, ax1)
+        total_profit = compute_profit(i, total_profit, profit, ax1)
 
 
-# ani = animation.FuncAnimation(fig, animate, interval=100)
-animate(0)
+ani = animation.FuncAnimation(fig, animate, interval=100)
+# animate(0)
 plt.show()
