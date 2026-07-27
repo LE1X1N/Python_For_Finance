@@ -3,6 +3,7 @@ import pandas as pd
 import pandas_ta as ta
 
 import deprecation
+from typing import Literal
 
 def MA_Crossover_Strategy(data: pd.DataFrame):
     data['MA5'] = data['close'].rolling(5).mean()
@@ -55,7 +56,9 @@ def MA_Crossover_Strategy(data: pd.DataFrame):
     return data, Record
 
 
-def MACD_Crossover_Strategy(data: pd.DataFrame):
+def MACD_Crossover_Strategy(data: pd.DataFrame, direction: Literal["both", "long", "short"]="both"):
+    assert direction in ["both", "long", "short"], "direction should be chosen from (both / long / short)"
+    
     macd = ta.momentum.macd(data['close']) * 100    # percentage
     macd.rename(columns={'MACD_12_26_9': 'MACD', 'MACDh_12_26_9': 'Histogram', 'MACDs_12_26_9': 'Signal'}, inplace=True)
     data = pd.concat([data, macd], axis=1).reindex(data.index)
@@ -82,13 +85,16 @@ def MACD_Crossover_Strategy(data: pd.DataFrame):
                 ((data['MACD'][i] < 0) & (data['Signal'][i] < 0)):
                 # Check the OpenLong or CloseShort position
                 if not Long_position and not Short_position:   # 开多
-                    OpenLong.append(data['close'][i])   
-                    CloseLong.append(np.nan)
-                    OpenShort.append(np.nan)
-                    CloseShort.append(np.nan)
-                    Long_position = True
-                    Short_position = False
-                    Record.append([i, data['close'][i], 'OpenLong'])
+                    if direction in ("both", "long"):
+                        OpenLong.append(data['close'][i])   
+                        CloseLong.append(np.nan)
+                        OpenShort.append(np.nan)
+                        CloseShort.append(np.nan)
+                        Long_position = True
+                        Short_position = False
+                        Record.append([i, data['close'][i], 'OpenLong'])
+                    else:
+                        empty_signal()
                 elif Short_position and not Long_position:    # 平空
                     OpenLong.append(np.nan)   
                     CloseLong.append(np.nan)
@@ -112,13 +118,16 @@ def MACD_Crossover_Strategy(data: pd.DataFrame):
                     Short_position = False
                     Record.append([i, data['close'][i], 'CloseLong']) 
                 elif not Short_position and not Long_position:  # 开空
-                    OpenLong.append(np.nan)
-                    CloseLong.append(np.nan)
-                    OpenShort.append(data['close'][i])
-                    CloseShort.append(np.nan)
-                    Long_position = False
-                    Short_position = True
-                    Record.append([i, data['close'][i], 'OpenShort'])
+                    if direction in ("both", "short"):
+                        OpenLong.append(np.nan)
+                        CloseLong.append(np.nan)
+                        OpenShort.append(data['close'][i])
+                        CloseShort.append(np.nan)
+                        Long_position = False
+                        Short_position = True
+                        Record.append([i, data['close'][i], 'OpenShort'])
+                    else:
+                        empty_signal()
                 else:
                     empty_signal()
             else:
@@ -141,7 +150,9 @@ def MACD_Crossover_Strategy(data: pd.DataFrame):
     return data, Record
 
 
-def RSI_Crossover_Strategy(data: pd.DataFrame):
+def RSI_Crossover_Strategy(data: pd.DataFrame, direction: Literal["both", "long", "short"]="both"):
+    assert direction in ["both", "long", "short"], "direction should be chosen from (both / long / short)"
+    
     data['RSI'] = ta.momentum.rsi(data['close'], 14)
  
     OpenLong = []            # long signal
@@ -165,13 +176,16 @@ def RSI_Crossover_Strategy(data: pd.DataFrame):
             if ((data['RSI'][i-1] < 30) & (data['RSI'][i] > 30)):   # oversold
                 # Check the OpenLong or CloseShort position
                 if not Long_position and not Short_position:  # 开多
-                    OpenLong.append(data['close'][i])   
-                    CloseLong.append(np.nan)
-                    OpenShort.append(np.nan)
-                    CloseShort.append(np.nan)
-                    Long_position = True
-                    Short_position = False
-                    Record.append([i, data['close'][i], 'OpenLong'])
+                    if direction in ("both", "long"):
+                        OpenLong.append(data['close'][i])   
+                        CloseLong.append(np.nan)
+                        OpenShort.append(np.nan)
+                        CloseShort.append(np.nan)
+                        Long_position = True
+                        Short_position = False
+                        Record.append([i, data['close'][i], 'OpenLong'])
+                    else:
+                        empty_signal()
                 elif Short_position and not Long_position:    # 平空
                     OpenLong.append(np.nan)   
                     CloseLong.append(np.nan)
@@ -194,13 +208,16 @@ def RSI_Crossover_Strategy(data: pd.DataFrame):
                     Short_position = False
                     Record.append([i, data['close'][i], 'CloseLong']) 
                 elif not Short_position and not Long_position:  # 开空
-                    OpenLong.append(np.nan)
-                    CloseLong.append(np.nan)
-                    OpenShort.append(data['close'][i])
-                    CloseShort.append(np.nan)
-                    Long_position = False
-                    Short_position = True
-                    Record.append([i, data['close'][i], 'OpenShort'])
+                    if direction in ("both", "short"):
+                        OpenLong.append(np.nan)
+                        CloseLong.append(np.nan)
+                        OpenShort.append(data['close'][i])
+                        CloseShort.append(np.nan)
+                        Long_position = False
+                        Short_position = True
+                        Record.append([i, data['close'][i], 'OpenShort'])
+                    else:
+                        empty_signal()
                 else:
                     empty_signal()
             else:
