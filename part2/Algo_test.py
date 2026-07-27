@@ -200,26 +200,33 @@ def apply_strategy(strategy_func: Callable, data: pd.DataFrame, ax: matplotlib.a
     # choose a strategy
     data, Record = strategy_func(data)  
         
-    # Buy and Sell signal scatter plot
-    ax.scatter(data.index, data['Buy'], label="Buy", marker='^', color = "#FF6FFF", alpha=1, s=100)
-    ax.scatter(data.index, data['Sell'], label="Sell", marker='v', color = "#00FFBD", alpha=1, s=100)
-        
-    # Buy and Sell information on the right bar
-    profit = 0
+    # Open and Short signal scatter plot
+    ax.scatter(data.index, data['OpenLong'], label="OpenLong", marker='^', color = "#FF6FFF", alpha=1, s=100)
+    ax.scatter(data.index, data['CloseLong'], label="CloseLong", marker='v', color = "#00FFBD", alpha=1, s=100)
+    ax.scatter(data.index, data['OpenShort'], label="OpenShort", marker='v', color = "#FF6FFF", alpha=1, s=100)
+    ax.scatter(data.index, data['CloseShort'], label="CloseShort", marker='^', color = "#00FFBD", alpha=1, s=100)
+    
+    # Open and Short information on the right bar
     margin = 0.95
     for i, item in enumerate(Record):
         message = f"{i+1} {item[2]}@{item[1]}"
-        if item[2] == 'Buy':
+        if item[2] == 'OpenLong' or item[2] == 'OpenShort':
             ax.text(1.01, margin, message, bbox=dict(facecolor="#FF6FFF", alpha=0.5),
-                        transform=ax.transAxes, color='white', fontsize=9, fontweight='bold',
+                        transform=ax.transAxes, color='white', fontsize=7, fontweight='bold',
                         horizontalalignment='left', verticalalignment='center')
-            profit = profit - float(item[1])
         else:
             ax.text(1.01, margin, message, bbox=dict(facecolor="#00FFBD", alpha=0.5),
-                        transform=ax.transAxes, color='white', fontsize=9, fontweight='bold',
+                        transform=ax.transAxes, color='white', fontsize=6, fontweight='bold',
                         horizontalalignment='left', verticalalignment='center')
-            profit = profit + float(item[1])
         margin = margin - 0.055
+        
+    # compute day profit
+    profit = 0
+    for i, item in enumerate(Record):
+        if item[2] == 'OpenLong' or item[2] == 'CloseShort':
+            profit = profit - float(item[1])
+        else:
+            profit = profit + float(item[1])
 
     ax.text(0.9, 1.05, f"Daily Profit: ${str(round(profit, 3))}",
             bbox = dict(facecolor='white', alpha = 0.5),
@@ -251,7 +258,7 @@ def animate(i):
         subplot_MACD(data_day, ax2)
         subplot_RSI(data_day, ax3)
         
-        profit = apply_strategy(RSI_Strategy, data_day, ax1)
+        profit = apply_strategy(MACD_Crossover_Strategy, data_day, ax1)
         total_profit = compute_profit(i, total_profit, profit, ax1)
 
 
