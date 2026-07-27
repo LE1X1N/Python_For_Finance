@@ -68,9 +68,9 @@ def figure_design(ax):
     ax.spines['top'].set_color("#808080")
     ax.spines['left'].set_color("#808080")
     ax.spines['right'].set_color("#808080")
-    
 
-def main_plot(data, ax, current_date, showMA=True, showBB=True, apply_strategy=True, strategy_func=None):
+
+def main_plot(data, ax, current_date, showMA=True, showBB=True, showEMA=True, apply_strategy=True, strategy_func=None):
     candle_counter = range(len(data["open"]) - 1)
     ohlc = []
     
@@ -105,13 +105,15 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, apply_strategy=T
                         facecolor='#666699', alpha=0.2, label="Bollinger Bands")
         ax.plot(data["BBU"], color="#666699", linestyle="-", linewidth=0.2)
         ax.plot(data["BBL"], color="#666699", linestyle="-", linewidth=0.2)
-
-    if showMA == True | showBB == True:
+    
+    
+    if showMA or showBB or showEMA:
         leg = ax.legend(loc='upper left', facecolor="#121416", fontsize=10)
         # for text in leg.get_texts():
         #     text.set_color('w')
         plt.setp(leg.get_texts(), color='w')
-        
+    
+    
     if apply_strategy == True:
         # choose a strategy
         data, Record = strategy_func(data)  
@@ -136,9 +138,6 @@ def main_plot(data, ax, current_date, showMA=True, showBB=True, apply_strategy=T
                          horizontalalignment='left', verticalalignment='center')
                 Profit = Profit + float(item[1])
             margin = margin - 0.055
-         
-        # if Record[-1][2] == 'Buy':
-        #     Profit = Profit + float(Record[-1][1])  # offset last buy signal
 
         ax.text(0.9, 1.05, f"Daily Profit: ${str(round(Profit, 3))}",
                 bbox = dict(facecolor='white', alpha = 0.5),
@@ -163,15 +162,22 @@ def subplot_MACD(data: pd.DataFrame, ax: matplotlib.axes.Axes):
     ax.clear()
     figure_design(ax)
     
-    macd = ta.momentum.macd(data['close']) * 100
+    macd = ta.momentum.macd(data['close']).fillna(0) * 100
     data = pd.concat([data, macd], axis=1).reindex(data.index)
     
-    ax.plot(data['MACD_12_26_9'], label='MACD', linewidth=1, color='white') # MACD Line
-    ax.plot(data['MACDs_12_26_9'], label='signal', linewidth=1, color='orange') # Signal Line
+    # MACD Line
+    # ax.plot(np.where(data['MACD_12_26_9']==0, data['MACD_12_26_9'], None), label='MACD', linewidth=1, alpha=0)
+    # ax.plot(np.where(data['MACD_12_26_9']!=0, data['MACD_12_26_9'], None), label='MACD', linewidth=1, color='white') # MACD Line
+    ax.plot(data['MACD_12_26_9'], label='MACD', linewidth=1, color='white') 
+     
+    # Signal Line
+    # ax.plot(np.where(data['MACDs_12_26_9']==0, data['MACDs_12_26_9'], None), label='signal', linewidth=1, color='orange')
+    # ax.plot(np.where(data['MACDs_12_26_9']!=0, data['MACDs_12_26_9'], None), label='signal', linewidth=1, color='orange')
+    ax.plot(data['MACDs_12_26_9'], label='signal', linewidth=1, color='orange')
     
-    pos = data['MACDh_12_26_9'] > 0  # Histogram
+    # Histogram
+    pos = data['MACDh_12_26_9'] > 0  
     neg = data['MACDh_12_26_9'] < 0
-    
     ax.bar(data.index[pos], data['MACDh_12_26_9'][pos], color="#8B0000", width=0.8, align='center')
     ax.bar(data.index[neg], data['MACDh_12_26_9'][neg], color="#006400", width=0.8, align='center')
     
@@ -190,11 +196,16 @@ def subplot_RSI(data: pd.DataFrame, ax: matplotlib.axes.Axes):
     ax.axes.yaxis.set_ticks([30, 70])
     ax.set_ylim([-2, 102])
 
-    # data['RSI'] = compute_RSI(data['close'], 14)
-    data['RSI'] = ta.momentum.rsi(data['close'], 14)
-    data['x_axis'] = list(range(1, len(data['close']) + 1))
+    # data['RSI'] = compute_RSI(data['close'], 14)      # compute RSI
+    data['RSI'] = ta.momentum.rsi(data['close'], 14).fillna(50)
+
+    # data['x_axis'] = list(range(1, len(data['close']) + 1))
+    # ax.plot(data['x_axis'], data['RSI'], color="white", linewidth=1)
     
-    ax.plot(data['x_axis'], data['RSI'], color="white", linewidth=1)
+    # ax.plot(np.where(data['RSI']== 0, data['RSI'], None), color='white', alpha=0)
+    # ax.plot(np.where(data['RSI']!=0, data['RSI'], None), color='white', linewidth=1)
+    
+    ax.plot(data['RSI'], color="white", linewidth=1)
     
     if len(data['RSI'] != 0):
         ax.text(0.01, 0.95, f"RSI(14)", transform=ax.transAxes, color="white", 
@@ -235,13 +246,13 @@ def animate(i):
     global total_profit
     
     if not data_day.empty:
-        Profit = main_plot(data_day, ax1, current_date, showMA=False, showBB=False, 
+        Profit = main_plot(data_day, ax1, current_date, showMA=False, showBB=False, showEMA=True,
                            apply_strategy=True, strategy_func=MACD_Crossover_Strategy)
         subplot_MACD(data_day, ax2)
         subplot_RSI(data_day, ax3)
         total_profit = compute_profit(i, total_profit, Profit, ax1)
 
 
-ani = animation.FuncAnimation(fig, animate, interval=100)
-# animate(0)
+# ani = animation.FuncAnimation(fig, animate, interval=100)
+animate(0)
 plt.show()
