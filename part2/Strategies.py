@@ -280,7 +280,102 @@ def RSI_Crossover_Strategy(data: pd.DataFrame, direction: Literal["both", "long"
     data['CloseShort'] = CloseShort
     
     return data, Record
+
+
+def BB_Bounce_Strategy(data: pd.DataFrame, direction: Literal["both", "long", "short"]="both"):
+    assert direction in ["both", "long", "short"], "direction should be chosen from (both / long / short)"
+    
+    if "BBU" not in data.columns:
+        bb = ta.bbands(data['close'], length=20, lower_std=2, upper_std=2)
+        bb.rename(columns={"BBU_20_2_2":"BBU", "BBL_20_2_2":"BBL"}, inplace=True)
+        data = pd.concat([data, bb], axis=1).reindex(data.index)
  
+ 
+    OpenLong = []            # long signal
+    CloseLong = []
+    OpenShort = []           # short signal
+    CloseShort = []
+    Record = []          # record trade signal
+    Long_position = False   
+    Short_position = False
+    
+    def empty_signal():
+        OpenLong.append(np.nan)
+        CloseLong.append(np.nan)
+        OpenShort.append(np.nan)
+        CloseShort.append(np.nan)
+    
+    for i in range(len(data['close'])):
+        if i == 0:
+            empty_signal()
+        elif pd.notna(data['BBU'][i]):
+            if ((data['close'][i]+data['open'][i])/2 < data['BBL'][i]):   # oversold
+                # Check the OpenLong or CloseShort position
+                if not Long_position and not Short_position:  # 开多
+                    if direction in ("both", "long"):
+                        OpenLong.append(data['close'][i])   
+                        CloseLong.append(np.nan)
+                        OpenShort.append(np.nan)
+                        CloseShort.append(np.nan)
+                        Long_position = True
+                        Short_position = False
+                        Record.append([i, data['close'][i], 'OpenLong'])
+                    else:
+                        empty_signal()
+                elif Short_position and not Long_position:    # 平空
+                    OpenLong.append(np.nan)   
+                    CloseLong.append(np.nan)
+                    OpenShort.append(np.nan)
+                    CloseShort.append(data['close'][i])
+                    Long_position = False
+                    Short_position = False
+                    Record.append([i, data['close'][i], 'CloseShort'])
+                else:
+                    empty_signal()      
+                          
+            elif ((data['close'][i]+data['open'][i])/2 > data['BBU'][i]):  # overbought
+                # Check the CloseLong or OpenShort position
+                if Long_position and not Short_position:       # 平多
+                    OpenLong.append(np.nan)
+                    CloseLong.append(data['close'][i])
+                    OpenShort.append(np.nan)
+                    CloseShort.append(np.nan)
+                    Long_position = False
+                    Short_position = False
+                    Record.append([i, data['close'][i], 'CloseLong']) 
+                elif not Short_position and not Long_position:  # 开空
+                    if direction in ("both", "short"):
+                        OpenLong.append(np.nan)
+                        CloseLong.append(np.nan)
+                        OpenShort.append(data['close'][i])
+                        CloseShort.append(np.nan)
+                        Long_position = False
+                        Short_position = True
+                        Record.append([i, data['close'][i], 'OpenShort'])
+                    else:
+                        empty_signal()
+                else:
+                    empty_signal()
+            else:
+                empty_signal()
+        else:
+            empty_signal()
+    
+    if len(Record) % 2 == 1:
+        if Record[-1][2] == 'OpenLong':
+            OpenLong[Record[-1][0]] = np.nan
+        if Record[-1][2] == 'OpenShort':
+            OpenShort[Record[-1][0]] = np.nan
+        Record.pop()
+    
+    data['OpenLong'] = OpenLong
+    data['CloseLong'] = CloseLong
+    data['OpenShort'] = OpenShort
+    data['CloseShort'] = CloseShort
+    
+    return data, Record
+
+
 
 @deprecation.deprecated("This function has been deprecated, use MA_Crossover_Strategy instead.")
 def MA_Strategy(data: pd.DataFrame):
