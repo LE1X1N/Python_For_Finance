@@ -8,10 +8,13 @@ from typing import Literal
 
 def MA_Crossover_Strategy(data: pd.DataFrame, direction: Literal["both", "long", "short"]="both"):
     assert direction in ["both", "long", "short"], "direction should be chosen from (both / long / short)"
-        
-    data['MA5'] = data['close'].rolling(5).mean()
-    data['MA10'] = data['close'].rolling(10).mean()
-    data['MA20'] = data['close'].rolling(20).mean()  
+    
+    if "MA5" not in data.columns:
+        data['MA5'] = data['close'].rolling(5).mean()
+    if "MA10" not in data.columns:
+        data['MA10'] = data['close'].rolling(10).mean()
+    if "MA20" not in data.columns:
+        data['MA20'] = data['close'].rolling(20).mean()  
 
     OpenLong = []            # long signal
     CloseLong = []
@@ -95,11 +98,12 @@ def MA_Crossover_Strategy(data: pd.DataFrame, direction: Literal["both", "long",
 
 def MACD_Crossover_Strategy(data: pd.DataFrame, direction: Literal["both", "long", "short"]="both"):
     assert direction in ["both", "long", "short"], "direction should be chosen from (both / long / short)"
+
+    if 'MACD_12_26_9' not in data.columns:
+        macd = ta.momentum.macd(data['close']) * 100    # percentage
+        macd.rename(columns={'MACD_12_26_9': 'MACD', 'MACDh_12_26_9': 'Histogram', 'MACDs_12_26_9': 'Signal'}, inplace=True)
+        data = pd.concat([data, macd], axis=1).reindex(data.index)
     
-    macd = ta.momentum.macd(data['close']) * 100    # percentage
-    macd.rename(columns={'MACD_12_26_9': 'MACD', 'MACDh_12_26_9': 'Histogram', 'MACDs_12_26_9': 'Signal'}, inplace=True)
-    data = pd.concat([data, macd], axis=1).reindex(data.index)
- 
     OpenLong = []            # long signal
     CloseLong = []
     OpenShort = []           # short signal
@@ -190,7 +194,8 @@ def MACD_Crossover_Strategy(data: pd.DataFrame, direction: Literal["both", "long
 def RSI_Crossover_Strategy(data: pd.DataFrame, direction: Literal["both", "long", "short"]="both"):
     assert direction in ["both", "long", "short"], "direction should be chosen from (both / long / short)"
     
-    data['RSI'] = ta.momentum.rsi(data['close'], 14)
+    if "RSI" not in data.columns:
+        data['RSI'] = ta.momentum.rsi(data['close'], 14)
  
     OpenLong = []            # long signal
     CloseLong = []
@@ -275,7 +280,7 @@ def RSI_Crossover_Strategy(data: pd.DataFrame, direction: Literal["both", "long"
     data['CloseShort'] = CloseShort
     
     return data, Record
-
+ 
 
 @deprecation.deprecated("This function has been deprecated, use MA_Crossover_Strategy instead.")
 def MA_Strategy(data: pd.DataFrame):
