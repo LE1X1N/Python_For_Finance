@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.gridspec import GridSpec
@@ -80,17 +81,17 @@ def string_to_number(df, column):
 def compute_RSI(data, time_window):
     diff = data.diff(1).dropna()
     
-    up_change = pd.Series(0, index=diff.index)
-    down_change = pd.Series(0, index=diff.index)
+    up_change = pd.Series(0.0, index=diff.index, dtype=np.float64)
+    down_change = pd.Series(0.0, index=diff.index, dtype=np.float64)
     
     mask_up = diff > 0
     mask_down = diff < 0
     up_change[mask_up] = diff[mask_up]
     down_change[mask_down] = -diff[mask_down]   # abs
     
-    up_avg = up_change.ewm(com=time_window-1, min_periods=time_window).mean()
+    up_avg = up_change.ewm(com=time_window-1, min_periods=time_window, adjust=False).mean()
+    down_avg = down_change.ewm(com=time_window-1, min_periods=time_window, adjust=False).mean()
     
-    down_avg = down_change.ewm(com=time_window-1, min_periods=time_window).mean()
     down_avg = down_avg.mask(down_avg == 0, 1e-10)
     
     rs = up_avg / down_avg
@@ -119,7 +120,7 @@ def read_data_ohlc(filename, stock_code, usecols):
     latest_change = str(latest_info.iloc[1])
     
     # resample to 1Min
-    data = df['price'].resample('30s').ohlc()   # resample price
+    data = df['price'].resample('1min').ohlc()   # resample price
     data['time'] = data.index
     data['time'] = pd.to_datetime(data['time'], format='%Y-%m-%d %H:%M:%S')
     
@@ -132,13 +133,13 @@ def read_data_ohlc(filename, stock_code, usecols):
     data['RSI'] = data['RSI'].fillna(50)    # NAN -> 50
     
     # difference the accumulate volume
-    df_vol = df['volume'].resample('30s').mean()    # resample volume
+    df_vol = df['volume'].resample('1min').mean()    # resample volume
     data['volume_diff'] = df_vol.diff()
     data.loc[data['volume_diff'] < 0, 'volume_diff'] = None
     
     data.reset_index(drop=True, inplace=True)
     
-    return data, latest_price, latest_change, df['target'][-1], df['volume'][-1]
+    return data, latest_price, latest_change, df['target'].iloc[-1], df['volume'].iloc[-1]
 
 def animate(i, filename):
 
@@ -272,6 +273,7 @@ while (not os.path.exists(filename)):
 
 print("开始渲染...")
 ani = animation.FuncAnimation(fig, animate, fargs=(filename, ), interval=100, cache_frame_data=False)
+# animate(1, filename)
 plt.show()
     
     
