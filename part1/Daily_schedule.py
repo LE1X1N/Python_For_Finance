@@ -23,10 +23,16 @@ def real_time_price(stock_code):
     driver.get(url)
     
     xpath = '//*[@id="main-content-wrapper"]/section[1]/div[2]/div[1]/section/div/section[1]/div[1]'
-    stock_price_info = xpath_element(xpath)
-    print(stock_price_info.text)
+    stock_price_info = xpath_element(xpath).text.split()
     
-    price, change, volume, latest_pattern, one_year_target = [], [], [], [], []
+    if stock_price_info != []:
+        price = stock_price_info[0]
+        change = stock_price_info[1]+' '+stock_price_info[2]
+    else:
+        price = []
+        change = []
+    
+    volume, latest_pattern, one_year_target = [], [], [], [], []
     return price, change, volume, latest_pattern, one_year_target
 
 
@@ -38,7 +44,10 @@ driver = webdriver.Chrome(options=chrome_options, service=chrome_service)
 
 Stock = ['BRK-B', "PYPL", "TWTR", "AAPL", "AMZN", "MSFT", "FB", "GOOG"]
 
-real_time_price(Stock[0])
+price, change, volume, latest_pattern, one_year_target = real_time_price(Stock[0])
+
+print(price)
+print(change)
 
 # while(True):
     # df.to_csv
