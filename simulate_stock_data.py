@@ -109,7 +109,7 @@ def append_stock_data(stock_num, interval, add_rows, min_vol_add, max_vol_add):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="模拟股票实时行情数据")
    
-    parser.add_argument("--num", type=int, default=2, help="股票数量")        # 必选
+    parser.add_argument("--num", type=int, default=7, help="股票数量")        # 必选
     parser.add_argument("--interval", type=int, default=1, help="Tick生成间隔")  # 可选
     parser.add_argument("--rows", type=int, default=100, help="需要追加的数据行数")
     parser.add_argument("--min-vol", type=int, default=400000, help="单次最小成交量增量")
