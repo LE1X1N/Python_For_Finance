@@ -1,10 +1,26 @@
 # Python For Finance
 
-## Part1 数据获取与可视化
+## Part1 数据获取
 
-通过 `requests + BeautifulSoup4` 公网 HTTP 请求，解析 Yahoo Finance 获取股价数据
+### 1. BeautifulSoup
+通过 `requests + BeautifulSoup4` 公网 HTTP 请求，解析 Yahoo Finance 获取股票数据
 
+### 2. Selenium
 
+使用 `Selenium` 结合`xpath`解析页面内容获取数据
+
+### 3. API
+国内：
+    AKShare
+    Baostock
+    AllTick
+
+国外：
+    Massive (原Polygon)
+    Finhub
+    Twelve Data
+
+### 4. 官方来源
 国内A股正规行情请使用 Level 1 / Level 2 获取。
 
 参考上海证券交易所Level-1和Level-2的产品说明书。
@@ -23,6 +39,9 @@
 
 - 成交数据：包含逐笔成交明细，精确到每一笔订单的成交时间、价格和数量。
 
+### 5. 模拟
+提供脚本模拟tick级别数据变化
+
 ## Part2 量化策略
 
 - MA Crossover Strategy
@@ -32,4 +51,4 @@
 
 
 
-## Part3 实时数据处理
+## Part3 实时交易
