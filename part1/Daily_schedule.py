@@ -34,21 +34,33 @@ def real_time_price(stock_code):
         change = []
         
     # Stock fundimentals
-    xpath = '//*[@id="main-content-wrapper"]/section[3]/div/div/div/ul'
-    li_elements = xpath_element(driver, xpath).find_elements(By.TAG_NAME, "li")
+    xpath_cands = ['//*[@id="main-content-wrapper"]/section[3]/div/div/div/ul', 
+                  '//*[@id="main-content-wrapper"]/section[4]/div/div/div/ul']
     
-    if li_elements:
-        fundimental_info = {}
-        for li in li_elements:
-            kv = li.text.split("\n", maxsplit=2)
-            fundimental_info[kv[0]] = kv[1]
+    for xpath in xpath_cands:
+        ul_element = xpath_element(driver, xpath)
+        if ul_element != []:
+            li_elements = ul_element.find_elements(By.TAG_NAME, "li")
+            
+            fundimental_info = {}
+            for li in li_elements:
+                kv = li.text.split("\n", maxsplit=2)
+                fundimental_info[kv[0]] = kv[1]
+            
+            volume = fundimental_info["Volume"]
+            
+            if fundimental_info["1y Target Est"] != "N/A":
+                one_year_target = fundimental_info["1y Target Est"]
+            else:
+                one_year_target = []
+            
+            break
         
-        volume = fundimental_info["Volume"]
-        one_year_target = fundimental_info["1y Target Est"]
-    else:
+    if ul_element == []:
         volume = []
         one_year_target = []
-     
+    
+    latest_pattern = []
     return price, change, volume, latest_pattern, one_year_target
 
 
@@ -58,12 +70,25 @@ chrome_service = Service("E:/Google/chromedriver-win32/chromedriver-win32/chrome
 driver = webdriver.Chrome(options=chrome_options, service=chrome_service)
 
 
-Stock = ['BRK-B', "PYPL", "TWTR", "AAPL", "AMZN", "MSFT", "FB", "GOOG"]
+Stocks = [ "AAPL", "BABA", "BRK-B", "META", "AMZN", "MSFT", "V", "GOOG"]
 
-price, change, volume, latest_pattern, one_year_target = real_time_price(Stock[0])
+while(True):
+    info = []
+    time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    for stock in Stocks:
+        price, change, volume, latest_pattern, one_year_target = real_time_price(stock)
+        info.append(price)
+        info.extend([change])
+        info.extend([volume])
+        info.extend([latest_pattern])
+        info.extend([one_year_target])
+    
+    col = [time_stamp]
+    col.extend(info)
+    
+    df = pd.DataFrame(col).T
+    df.to_csv(f"stock_tick_{time_stamp[0:11]}.csv", mode='a', header=False)
+    print(col)
 
-print(price)
-print(change)
-
-# while(True):
-    # df.to_csv
+driver.quit()
