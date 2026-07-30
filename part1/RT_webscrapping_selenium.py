@@ -60,8 +60,7 @@ def real_time_price(stock_code):
         volume = []
         one_year_target = []
     
-    latest_pattern = []
-    return price, change, volume, latest_pattern, one_year_target
+    return price, change, volume, one_year_target
 
 
 chrome_options = Options()
