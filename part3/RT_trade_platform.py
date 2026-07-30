@@ -4,7 +4,7 @@ import pandas as pd
 import pandas_ta as ta
 import numpy as np
 
-import matplotlib
+from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.transforms as transform
@@ -14,7 +14,7 @@ from matplotlib.widgets import CheckButtons
 from mycolorpy import colorlist as mcp
 from mplfinance.original_flavor import candlestick_ohlc
 
-def figure_design(axs: list[matplotlib.axes.Axes]):
+def figure_design(axs: list[Axes]):
     for ax in axs:
         ax.set_facecolor("#1e1e1e")
         ax.tick_params(axis='both', labelsize=14, colors="#e4e4e4")
@@ -23,7 +23,21 @@ def figure_design(axs: list[matplotlib.axes.Axes]):
         ax.spines['top'].set_color('#787878')
         ax.spines['left'].set_color('#787878')
         ax.spines['right'].set_color('#787878')
-        
+
+def ax_design(ax: Axes, y_axis_visible: bool=False, x_axis_visible: bool=False):
+    ax.clear()
+    ax.grid(True, color='grey', linestyle='-', which='major', axis='both', linewidth=0.3)
+    
+    if not y_axis_visible:
+        ax.axes.yaxis.set_visible(False)
+    else:
+        ax.axes.yaxis.set_ticks_position('right')
+    
+    if not x_axis_visible:
+        ax.axes.xaxis.set_visible(False)
+    else:
+        ax.tick_params(axis='x', which='major', labelsize=10)
+    
 
 def plot_volume():
     pass
@@ -46,8 +60,18 @@ def interactive_TA():
 def interactive_strategy():
     pass
 
-def animate():
-    pass
+def animate(i):
+    # Main
+    ax_design(ax1, y_axis_visible=True, x_axis_visible=False)
+    
+    # Sub volume
+    ax_design(ax2, y_axis_visible=False, x_axis_visible=False)
+    
+    # Sub MACD
+    ax_design(ax3, y_axis_visible=True, x_axis_visible=False)
+    
+    # Sub RSI
+    ax_design(ax4, y_axis_visible=True, x_axis_visible=True)
 
 
 
@@ -64,5 +88,7 @@ Stock = ['AAPL']
 plot_button_TA = interactive_TA()
 plot_button_strategy = interactive_strategy()
 
-# ani = animation.FuncAnimation(fig, animate, interval=1)
+# animate(0)
+ani = animation.FuncAnimation(fig, animate, interval=100)
+
 plt.show()
