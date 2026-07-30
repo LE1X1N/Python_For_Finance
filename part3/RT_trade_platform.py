@@ -51,8 +51,30 @@ def plot_RSI():
 def plot_x_axis_time():
     pass
 
-def process_data():
-    pass
+def process_data(filename: str, stock_name: str):
+    df = pd.read_csv(filename, header=None, usecols=[1, 2, 3, 4, 5],
+                     names=['time', 'price', 'change', 'volume', 'target'],
+                     index_col= 'time', parse_dates=['time'])
+    df.ffill(inplace=True)  # forward fill
+    
+    df['price'] = df['price'].astype(float)
+    df['volume'] = df['volume'].str.replace(",", "", regex=False).astype(float)
+    df['target'] = df['target'].astype(float)
+
+    # data 
+    data = df['price'].resample('1min').ohlc()      # resample price
+    data['volume_diff'] = df['volume'].resample('1min').mean().diff().fillna(0)   # volume difference
+    data['time'] = pd.to_datetime(data.index, format='%Y-%m-%d %H:%M:%S')
+    data['RSI'] = ta.momentum.rsi(data['close'], 14)
+    data['RSI'] = data['RSI'].fillna(50)
+    data.reset_index(drop=True, inplace=True)
+    
+    latest_price = df['price'].iloc[-1]
+    latest_change = df['change'].iloc[-1]
+    target = df['target'].iloc[-1]
+    volume = df['volume'].iloc[-1]
+    
+    return data, latest_price, latest_change, target, volume
 
 def interactive_TA():
     pass
@@ -61,6 +83,13 @@ def interactive_strategy():
     pass
 
 def animate(i):
+    time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # process raw tick data
+    filename = f"stock_tick_{time_stamp[0:10]}.csv"
+    data, latest_price, latest_change, target, volume= process_data(filename, Stock[0])
+    
+    
     # Main
     ax_design(ax1, y_axis_visible=True, x_axis_visible=False)
     
@@ -88,7 +117,7 @@ Stock = ['AAPL']
 plot_button_TA = interactive_TA()
 plot_button_strategy = interactive_strategy()
 
-# animate(0)
-ani = animation.FuncAnimation(fig, animate, interval=100)
+animate(0)  # for debug
+# ani = animation.FuncAnimation(fig, animate, interval=100)
 
 plt.show()
