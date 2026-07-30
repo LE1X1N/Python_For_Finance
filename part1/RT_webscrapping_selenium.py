@@ -76,11 +76,10 @@ while(True):
     time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     for stock in Stocks:
-        price, change, volume, latest_pattern, one_year_target = real_time_price(stock)
+        price, change, volume, one_year_target = real_time_price(stock)
         info.append(price)
         info.extend([change])
         info.extend([volume])
-        info.extend([latest_pattern])
         info.extend([one_year_target])
     
     col = [time_stamp]
