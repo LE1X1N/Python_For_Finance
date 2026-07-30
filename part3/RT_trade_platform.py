@@ -4,16 +4,26 @@ import pandas as pd
 import pandas_ta as ta
 import numpy as np
 
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.transforms as transform
 import matplotlib.ticker as mticker
 from matplotlib.gridspec import GridSpec
 from matplotlib.widgets import CheckButtons
+from mycolorpy import colorlist as mcp
 from mplfinance.original_flavor import candlestick_ohlc
 
-def figure_design():
-    pass
+def figure_design(axs: list[matplotlib.axes.Axes]):
+    for ax in axs:
+        ax.set_facecolor("#1e1e1e")
+        ax.tick_params(axis='both', labelsize=14, colors="#e4e4e4")
+        ax.ticklabel_format(useOffset=False)
+        ax.spines['bottom'].set_color('#787878')
+        ax.spines['top'].set_color('#787878')
+        ax.spines['left'].set_color('#787878')
+        ax.spines['right'].set_color('#787878')
+        
 
 def plot_volume():
     pass
@@ -39,6 +49,8 @@ def interactive_strategy():
 def animate():
     pass
 
+
+
 fig = plt.figure()
 fig.patch.set_facecolor('#121416')
 gs = fig.add_gridspec(10, 6)
@@ -52,5 +64,5 @@ Stock = ['AAPL']
 plot_button_TA = interactive_TA()
 plot_button_strategy = interactive_strategy()
 
-ani = animation.FuncAnimation(fig, animate, interval=1)
+# ani = animation.FuncAnimation(fig, animate, interval=1)
 plt.show()
