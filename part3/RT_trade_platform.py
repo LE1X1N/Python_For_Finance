@@ -87,7 +87,32 @@ def compute_plot_OHLC(ax: Axes, data: pd.DataFrame):
         else:
             margin_price = margin_price + 0.05
     return ohlc
-        
+
+def plot_header(ax: Axes, stock_code: str, latest_price: float, latest_change: str, target: float):
+    ax.text(0.12, 0.95, stock_code, color='#e4e4e4',transform=ax.transAxes, fontsize=10, 
+            fontweight='bold', horizontalalignment='left', verticalalignment='center')
+    ax.text(0.18, 0.95, target, color='#08a0e9',transform=ax.transAxes, fontsize=10, 
+            fontweight='bold', horizontalalignment='left', verticalalignment='center')
+    ax.text(0.12, 0.90, latest_price, color='#e4e4e4',transform=ax.transAxes, fontsize=10, 
+            fontweight='bold', horizontalalignment='left', verticalalignment='center')
+    
+    if latest_change[0] == '+':
+        colorcode = COLORUP
+    else:
+        colorcode = COLORDOWN
+    
+    ax.text(0.18, 0.90, latest_change, color=colorcode,transform=ax.transAxes, fontsize=10, 
+            fontweight='bold', horizontalalignment='left', verticalalignment='center')
+
+    time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ax.text(0.93, 1.05, time_stamp, color='white',transform=ax.transAxes, fontsize=10, 
+            fontweight='bold', horizontalalignment='center', verticalalignment='center')
+
+    ax.text(-0.08, 0.94, 'Indicators', color='white',transform=ax.transAxes, fontsize=10, 
+            fontweight='bold', horizontalalignment='left', verticalalignment='center')
+    
+    ax.text(-0.08, 0.66, 'Strategy', color='white',transform=ax.transAxes, fontsize=10, 
+            fontweight='bold', horizontalalignment='left', verticalalignment='center')
 
 def plot_volume():
     pass
@@ -142,7 +167,7 @@ def animate(i):
     
     # Main
     ax_design(ax1, y_axis_visible=True, x_axis_visible=False)
-    
+    plot_header(ax1, Stock[0], latest_price, latest_change, target)
     ohlc = compute_plot_OHLC(ax1, data)
     
     # Sub volume
