@@ -51,7 +51,7 @@ def compute_plot_OHLC(ax: Axes, data: pd.DataFrame):
         ohlc.append(append_ohlc)
     candlestick_ohlc(ax, ohlc, width=0.1, colorup=COLORUP, colordown=COLORDOWN)
     
-    # OHLC
+    # price line
     if data['close'].iloc[-1] > data['open'].iloc[-1]:
         colorcode = COLORUP
     else:
@@ -60,10 +60,34 @@ def compute_plot_OHLC(ax: Axes, data: pd.DataFrame):
     ax.axhline(data['close'].iloc[-1], linestyle='--', color=colorcode, linewidth=0.5)
     
     trans = transform.blended_transform_factory(ax.transAxes, ax.transData)
-    ax.text(1.005, data['close'].iloc[-1], data['close'].iloc[-1], color='#e4e4e4', fontsize=12,
+    ax.text(x=1.005, y=data['close'].iloc[-1], s=data['close'].iloc[-1], color='#e4e4e4', fontsize=12,
             transform=trans, horizontalalignment='left', verticalalignment='center',
             bbox=dict(facecolor=colorcode, edgecolor=colorcode))
 
+    # OHLC text
+    strings = ['Open', str(data['open'][i]), 
+               'High', str(data['high'][i]), 
+               'Low', str(data['low'][i]), 
+               'Close', str(data['close'][i])]
+    colors = ['#e4e4e4', colorcode, 
+              '#e4e4e4', colorcode, 
+              '#e4e4e4', colorcode, 
+              '#e4e4e4', colorcode]
+
+    margin_label = 0
+    margin_price = 0
+    
+    for s, c in zip(strings, colors):
+        ax.text(0.6+margin_label+margin_price, 0.95, s + " ", color=c,
+                transform=ax.transAxes, fontsize=10, fontweight='bold',
+                horizontalalignment='left', verticalalignment='center')
+        
+        if c == '#e4e4e4':
+            margin_label = margin_label + 0.05
+        else:
+            margin_price = margin_price + 0.05
+    return ohlc
+        
 
 def plot_volume():
     pass
