@@ -14,6 +14,9 @@ from matplotlib.widgets import CheckButtons
 from mycolorpy import colorlist as mcp
 from mplfinance.original_flavor import candlestick_ohlc
 
+COLORUP = "#eb4d5c"
+COLORDOWN = "#53b987"
+
 def figure_design(axs: list[Axes]):
     for ax in axs:
         ax.set_facecolor("#1e1e1e")
@@ -39,14 +42,27 @@ def ax_design(ax: Axes, y_axis_visible: bool=False, x_axis_visible: bool=False):
         ax.tick_params(axis='x', which='major', labelsize=10)
 
 
-def compute_plot_OHLC(ax, data):
+def compute_plot_OHLC(ax: Axes, data: pd.DataFrame):
+    # candlestick chart
     candle_counter = range(len(data['open']))   
     ohlc = []
     for i in candle_counter:
         append_ohlc = i, data['open'][i], data['high'][i], data['low'][i], data['close'][i]
         ohlc.append(append_ohlc)
+    candlestick_ohlc(ax, ohlc, width=0.1, colorup=COLORUP, colordown=COLORDOWN)
     
-    candlestick_ohlc(ax, ohlc, width=0.1, colorup="#eb4d5c", colordown="#53b987")
+    # OHLC
+    if data['close'].iloc[-1] > data['open'].iloc[-1]:
+        colorcode = COLORUP
+    else:
+        colorcode = COLORDOWN
+    
+    ax.axhline(data['close'].iloc[-1], linestyle='--', color=colorcode, linewidth=0.5)
+    
+    trans = transform.blended_transform_factory(ax.transAxes, ax.transData)
+    ax.text(1.005, data['close'].iloc[-1], data['close'].iloc[-1], color='#e4e4e4', fontsize=12,
+            transform=trans, horizontalalignment='left', verticalalignment='center',
+            bbox=dict(facecolor=colorcode, edgecolor=colorcode))
 
 
 def plot_volume():
