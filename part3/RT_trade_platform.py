@@ -37,7 +37,17 @@ def ax_design(ax: Axes, y_axis_visible: bool=False, x_axis_visible: bool=False):
         ax.axes.xaxis.set_visible(False)
     else:
         ax.tick_params(axis='x', which='major', labelsize=10)
+
+
+def compute_plot_OHLC(ax, data):
+    candle_counter = range(len(data['open']))   
+    ohlc = []
+    for i in candle_counter:
+        append_ohlc = i, data['open'][i], data['high'][i], data['low'][i], data['close'][i]
+        ohlc.append(append_ohlc)
     
+    candlestick_ohlc(ax, ohlc, width=0.1, colorup="#eb4d5c", colordown="#53b987")
+
 
 def plot_volume():
     pass
@@ -93,6 +103,8 @@ def animate(i):
     # Main
     ax_design(ax1, y_axis_visible=True, x_axis_visible=False)
     
+    ohlc = compute_plot_OHLC(ax1, data)
+    
     # Sub volume
     ax_design(ax2, y_axis_visible=False, x_axis_visible=False)
     
@@ -117,7 +129,7 @@ Stock = ['AAPL']
 plot_button_TA = interactive_TA()
 plot_button_strategy = interactive_strategy()
 
-animate(0)  # for debug
-# ani = animation.FuncAnimation(fig, animate, interval=100)
+# animate(0)  # for debug
+ani = animation.FuncAnimation(fig, animate, interval=100)
 
 plt.show()
