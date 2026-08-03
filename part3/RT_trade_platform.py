@@ -114,8 +114,22 @@ def plot_header(ax: Axes, stock_code: str, latest_price: float, latest_change: s
     ax.text(-0.08, 0.66, 'Strategy', color='white',transform=ax.transAxes, fontsize=10, 
             fontweight='bold', horizontalalignment='left', verticalalignment='center')
 
-def plot_volume():
-    pass
+def plot_volume(ax: Axes, data: pd.DataFrame, volume: float):
+    pos = (data['open'] - data['close']) <= 0   # index
+    neg = (data['open'] - data['close']) > 0
+    
+    ax.bar(data.index[pos], data['volume_diff'][pos], color=COLORUP, width=0.8, align='center')
+    ax.bar(data.index[neg], data['volume_diff'][neg], color=COLORDOWN, width=0.8, align='center')
+    
+    ymax =  data['volume_diff'].max()
+    ystd =  data['volume_diff'].std()
+    
+    if not (math.isnan(ymax) or math.isnan(ystd)):
+        ax.set_ylim([0, ymax + ystd])
+    
+    ax.text(0.01, 0.95, f'Volume: {int(volume):,}', transform=ax.transAxes, color='#e4e4e4',
+            fontsize=8, fontweight='bold', horizontalalignment='left', verticalalignment='top')
+    
 
 def plot_MACD():
     pass
@@ -172,6 +186,7 @@ def animate(i):
     
     # Sub volume
     ax_design(ax2, y_axis_visible=False, x_axis_visible=False)
+    plot_volume(ax2, data, volume)
     
     # Sub MACD
     ax_design(ax3, y_axis_visible=True, x_axis_visible=False)
