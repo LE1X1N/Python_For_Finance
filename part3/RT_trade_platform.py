@@ -136,14 +136,14 @@ def plot_MACD(ax: Axes, data: pd.DataFrame):
                 fontweight='bold', horizontalalignment='left', verticalalignment='top')
     
     if len(data['close']) > 33:
-        macd = ta.momentum.macd(data['close']).fillna(0)*100
+        macd = ta.momentum.macd(data['close']).fillna(0)
         data = pd.concat([data, macd], axis=1).reindex(data.index)
 
         ax.plot(data['MACD_12_26_9'], label='MACD', linewidth=1, color='white')     # MACD line
         ax.plot(data['MACDs_12_26_9'], label='signal', linewidth=1, color='orange') # Signal line
             
         # Histogram
-        pos = data['MACDh_12_26_9'] > 0  
+        pos = data['MACDh_12_26_9'] >= 0  
         neg = data['MACDh_12_26_9'] < 0
         ax.bar(data.index[pos], data['MACDh_12_26_9'][pos], color="#8B0000", width=0.8, align='center')
         ax.bar(data.index[neg], data['MACDh_12_26_9'][neg], color="#006400", width=0.8, align='center')
@@ -151,11 +151,31 @@ def plot_MACD(ax: Axes, data: pd.DataFrame):
     else:
         ax.axhline(y=0.5, color="#666666", linestyle='--', linewidth=0.8)
     
-def plot_RSI():
-    pass
+def plot_RSI(ax: Axes, data: pd.DataFrame):
+    ax.set_ylim([0, 100])
+    ax.axhline(30, linestyle='-', color='green', linewidth=0.5)
+    ax.axhline(50, linestyle='-', color='white', linewidth=0.5)
+    ax.axhline(70, linestyle='-', color='red', linewidth=0.5)
 
-def plot_x_axis_time():
-    pass
+    data['RSI'] = ta.momentum.rsi(data['close'], 14).fillna(50)
+    
+    ax.plot(data['RSI'], color="#37a6ef", linewidth=1)
+    ax.bar(data.index, data['RSI'], color="#006400", width=0.8, align='center', alpha=0)   # invisible bar for alignement
+    
+    ax.text(0.01, 0.95, f"RSI(14): {str(round(data['RSI'].iloc[-1], 2))}", transform=ax.transAxes, color="white", 
+        fontsize=8, fontweight='bold', horizontalalignment='left', verticalalignment='top')
+
+
+def plot_x_axis_time(ax: Axes, data: pd.DataFrame):
+    # time
+    xdate = data['time'].tolist()
+
+    def mydate(x, pos=None):
+        return xdate[int(x)].strftime('%H:%M') if int(x) < len(xdate) else ""
+
+    ax.xaxis.set_major_formatter(mticker.FuncFormatter(mydate))
+    ax.grid(True, color='grey', linestyle='-', which='major')
+
 
 def process_data(filename: str, stock_name: str):
     df = pd.read_csv(filename, header=None, usecols=[1, 2, 3, 4, 5],
@@ -211,8 +231,9 @@ def animate(i):
     
     # Sub RSI
     ax_design(ax4, y_axis_visible=True, x_axis_visible=True)
-
-
+    ax4.axes.yaxis.set_ticks([30, 70])
+    plot_RSI(ax4, data)
+    plot_x_axis_time(ax4, data)
 
 fig = plt.figure()
 fig.patch.set_facecolor('#121416')
