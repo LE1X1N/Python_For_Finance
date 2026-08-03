@@ -129,11 +129,28 @@ def plot_volume(ax: Axes, data: pd.DataFrame, volume: float):
     
     ax.text(0.01, 0.95, f'Volume: {int(volume):,}', transform=ax.transAxes, color='#e4e4e4',
             fontsize=8, fontweight='bold', horizontalalignment='left', verticalalignment='top')
+
+
+def plot_MACD(ax: Axes, data: pd.DataFrame):
+    ax.text(0.01, 0.95, 'MACD(12, 26, 9)', transform=ax.transAxes, color='white', fontsize=8,
+                fontweight='bold', horizontalalignment='left', verticalalignment='top')
     
+    if len(data['close']) > 33:
+        macd = ta.momentum.macd(data['close']).fillna(0)*100
+        data = pd.concat([data, macd], axis=1).reindex(data.index)
 
-def plot_MACD():
-    pass
-
+        ax.plot(data['MACD_12_26_9'], label='MACD', linewidth=1, color='white')     # MACD line
+        ax.plot(data['MACDs_12_26_9'], label='signal', linewidth=1, color='orange') # Signal line
+            
+        # Histogram
+        pos = data['MACDh_12_26_9'] > 0  
+        neg = data['MACDh_12_26_9'] < 0
+        ax.bar(data.index[pos], data['MACDh_12_26_9'][pos], color="#8B0000", width=0.8, align='center')
+        ax.bar(data.index[neg], data['MACDh_12_26_9'][neg], color="#006400", width=0.8, align='center')
+        
+    else:
+        ax.axhline(y=0.5, color="#666666", linestyle='--', linewidth=0.8)
+    
 def plot_RSI():
     pass
 
@@ -190,6 +207,7 @@ def animate(i):
     
     # Sub MACD
     ax_design(ax3, y_axis_visible=True, x_axis_visible=False)
+    plot_MACD(ax3, data)
     
     # Sub RSI
     ax_design(ax4, y_axis_visible=True, x_axis_visible=True)
