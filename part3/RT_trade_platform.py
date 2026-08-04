@@ -227,7 +227,7 @@ def interactive_strategy():
     check.set_facecolor("#121416")
     
     labels = ['SMA', 'MACD', 'RSI', 'BB'] 
-    actives = [True, True, True, True]
+    actives = [False, True, False, False]
     labels_num = len(labels)
     
     plot_button = CheckButtons(check, labels, actives,
@@ -247,7 +247,6 @@ def animate(i):
     filename = f"stock_tick_{time_stamp[0:10]}.csv"
     data, latest_price, latest_change, target, volume= process_data(filename, Stock[0])
     
-    
     # Main
     ax_design(ax1, y_axis_visible=True, x_axis_visible=False)
     plot_header(ax1, Stock[0], latest_price, latest_change, target)
@@ -266,6 +265,13 @@ def animate(i):
     ax4.axes.yaxis.set_ticks([30, 70])
     plot_RSI(ax4, data)
     plot_x_axis_time(ax4, data)
+    
+    # Button logics
+    showMA_status, showEMA_status, showBB_status = plot_button_TA.get_status()
+    
+    MA_status, MACD_status, RSI_status, BB_status = plot_button_strategy.get_status()
+    
+    
 
 fig = plt.figure()
 fig.patch.set_facecolor('#121416')
