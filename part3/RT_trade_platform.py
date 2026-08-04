@@ -203,7 +203,20 @@ def process_data(filename: str, stock_name: str):
     return data, latest_price, latest_change, target, volume
 
 def interactive_TA():
-    pass
+    check = plt.axes([0.07, 0.73, 0.05, 0.1])   # x, y, width, heigh
+    figure_design([check])
+    check.set_facecolor("#121416")
+    
+    actives = [True, True, True]    # create a check button under check axes
+    plot_button = CheckButtons(check, ['SMA', 'EMA', 'BB'], actives,
+                               frame_props={"facecolor": ["w"]*3,
+                                            "edgecolor": ["w"]*3},
+                               check_props={"color": ["#37a6ef"]*3,
+                                            "linewidths": [1.5] * 3},
+                               label_props={"color": ["w"]*3,
+                                            "fontsize": [10]*3})
+    return plot_button
+    
 
 def interactive_strategy():
     pass
@@ -245,8 +258,9 @@ ax4 = fig.add_subplot(gs[9, 0:6])
 figure_design([ax1, ax2, ax3, ax4])
 
 Stock = ['AAPL']
-plot_button_TA = interactive_TA()
-plot_button_strategy = interactive_strategy()
+
+plot_button_TA = interactive_TA()               # global variable
+plot_button_strategy = interactive_strategy()   # global variable
 
 # animate(0)  # for debug
 ani = animation.FuncAnimation(fig, animate, interval=100)
