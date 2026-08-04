@@ -221,6 +221,25 @@ def interactive_TA():
     return plot_button
 
 
+def interactive_strategy():
+    check = plt.axes([0.07, 0.58, 0.05, 0.1])   # x, y, width, heigh
+    figure_design([check])
+    check.set_facecolor("#121416")
+    
+    labels = ['SMA', 'MACD', 'RSI', 'BB'] 
+    actives = [True, True, True, True]
+    labels_num = len(labels)
+    
+    plot_button = CheckButtons(check, labels, actives,
+                               frame_props={"facecolor": ["w"]*labels_num,
+                                            "edgecolor": ["w"]*labels_num},
+                               check_props={"color": ["#37a6ef"]*labels_num,
+                                            "linewidths": [1.5]*labels_num},
+                               label_props={"color": ["w"]*labels_num,
+                                            "fontsize": [10]*labels_num})
+    return plot_button
+
+
 def animate(i):
     time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
@@ -260,7 +279,7 @@ figure_design([ax1, ax2, ax3, ax4])
 Stock = ['AAPL']
 
 plot_button_TA = interactive_TA()               # global variable
-# plot_button_strategy = interactive_strategy()   # global variable
+plot_button_strategy = interactive_strategy()   # global variable
 
 # animate(0)  # for debug
 ani = animation.FuncAnimation(fig, animate, interval=100)
