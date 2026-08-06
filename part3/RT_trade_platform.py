@@ -278,11 +278,14 @@ def compute_plot_TA(ax: Axes, data: pd.DataFrame,
     
 def animate(i):
     time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
+
     # process raw tick data
     filename = f"stock_tick_{time_stamp[0:10]}.csv"
     data, latest_price, latest_change, target, volume= process_data(filename, Stock[0])
     
+    """
+        ax1
+    """
     # Main
     ax_design(ax1, y_axis_visible=True, x_axis_visible=False)
     plot_header(ax1, Stock[0], latest_price, latest_change, target)
@@ -291,28 +294,49 @@ def animate(i):
     # Technical Analysis Button 
     showMA_status, showEMA_status, showBB_status = plot_button_TA.get_status()
     
+    # Plot TA
     data = compute_plot_TA(ax1, data, 
                            showMA=showMA_status, MAs = [5, 10, 20],
                            showEMA=showEMA_status, EMAs = [20],
                            showBB=showBB_status, BB=[20, 2])
     
     # Strategy Button
-    # MA_status, MACD_status, RSI_status, BB_status = plot_button_strategy.get_status()
+    MA_status, MACD_status, RSI_status, BB_status = plot_button_strategy.get_status()
+    
+    if MA_status and (len(data['close'])>20):
+        MA_Strategy(ax1, data)
+    
+    if MACD_status and (len(data['close'])>26):
+        MACD_Strategy(ax1, data)
+
+    if RSI_status and (data['RSI'][-1]!=50):
+        RSI_Strategy(ax1, data)
+
+    if BB_status and (len(data['close'])>20):
+        BB_Strategy(ax1, data)
     
     
     # legend
     leg = ax1.legend(loc='upper left', facecolor='#121416', fontsize=10)
     plt.setp(leg.get_texts(), color='w')
     
-    
+    """
+        ax2
+    """   
     # Sub volume
     ax_design(ax2, y_axis_visible=False, x_axis_visible=False)
     plot_volume(ax2, data, volume)
-    
+
+    """
+        ax3
+    """       
     # Sub MACD
     ax_design(ax3, y_axis_visible=True, x_axis_visible=False)
     plot_MACD(ax3, data)
-    
+ 
+    """
+        ax4
+    """     
     # Sub RSI
     ax_design(ax4, y_axis_visible=True, x_axis_visible=True)
     ax4.axes.yaxis.set_ticks([30, 70])
@@ -334,8 +358,9 @@ figure_design([ax1, ax2, ax3, ax4])
 Stock = ['AAPL']
 
 plot_button_TA = interactive_TA()               # global variable
-# plot_button_strategy = interactive_strategy()   # global variable
+plot_button_strategy = interactive_strategy()   # global variable
+
 animate(0)  # for debug
-ani = animation.FuncAnimation(fig, animate, interval=100)
+# ani = animation.FuncAnimation(fig, animate, interval=100)
 
 plt.show()
