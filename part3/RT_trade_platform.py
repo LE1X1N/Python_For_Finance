@@ -3,15 +3,16 @@ import datetime
 import pandas as pd
 import pandas_ta as ta
 import numpy as np
-
+import matplotlib as mpl
 from matplotlib.axes import Axes
+import matplotlib.cm as cm
+from matplotlib.colors import to_hex
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.transforms as transform
 import matplotlib.ticker as mticker
 from matplotlib.gridspec import GridSpec
 from matplotlib.widgets import CheckButtons
-from mycolorpy import colorlist as mcp
 from mplfinance.original_flavor import candlestick_ohlc
 
 COLORUP = "#eb4d5c"
@@ -240,6 +241,41 @@ def interactive_strategy():
     return plot_button
 
 
+
+def compute_plot_TA(ax: Axes, data: pd.DataFrame, 
+                    showMA: bool=True, MAs: list=[5, 10, 20], 
+                    showEMA: bool=True, EMAs: list=[20], 
+                    showBB: bool=True, BB: list=[20, 2]):
+    color_num = len(MAs) + len(EMAs)
+    rgba = mpl.colormaps['tab20'].resampled(color_num)
+    color_list = [to_hex(r) for r in rgba.colors]
+
+    if showMA:
+        for MA in MAs:
+            name = f'MA{MA}'
+            data[name] = data['close'].rolling(MA).mean()
+            ax.plot(data[name], color=color_list[0], linestyle='-', linewidth=1, label=f"{MA} periods SMA")
+            color_list.pop(0)
+            
+    if showEMA:
+        for EMA in EMAs:
+            name = f'EMA{EMA}'
+            data[name] = data['close'].ewm(span=EMA, adjust=False).mean()
+            ax.plot(data[name], color=color_list[0], linestyle='-', linewidth=1, label=f"{EMA} periods EMA")
+            color_list.pop(0)
+
+    if showBB:
+        bb = ta.bbands(data['close'], length=BB[0], lower_std=BB[1], upper_std=BB[1])
+        bb.rename(columns={"BBU_20_2_2":"BBU", "BBL_20_2_2":"BBL"}, inplace=True)
+        data = pd.concat([data, bb], axis=1).reindex(data.index)
+
+        ax.fill_between(data.index, data["BBU"], data["BBL"], 
+                        facecolor='#666699', alpha=0.2, label="Bollinger Bands")
+        ax.plot(data["BBU"], color="#666699", linestyle="-", linewidth=0.2)
+        ax.plot(data["BBL"], color="#666699", linestyle="-", linewidth=0.2)
+
+    return data
+    
 def animate(i):
     time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
@@ -251,6 +287,23 @@ def animate(i):
     ax_design(ax1, y_axis_visible=True, x_axis_visible=False)
     plot_header(ax1, Stock[0], latest_price, latest_change, target)
     ohlc = compute_plot_OHLC(ax1, data)
+    
+    # Technical Analysis Button 
+    showMA_status, showEMA_status, showBB_status = plot_button_TA.get_status()
+    
+    data = compute_plot_TA(ax1, data, 
+                           showMA=showMA_status, MAs = [5, 10, 20],
+                           showEMA=showEMA_status, EMAs = [20],
+                           showBB=showBB_status, BB=[20, 2])
+    
+    # Strategy Button
+    # MA_status, MACD_status, RSI_status, BB_status = plot_button_strategy.get_status()
+    
+    
+    # legend
+    leg = ax1.legend(loc='upper left', facecolor='#121416', fontsize=10)
+    plt.setp(leg.get_texts(), color='w')
+    
     
     # Sub volume
     ax_design(ax2, y_axis_visible=False, x_axis_visible=False)
@@ -266,11 +319,7 @@ def animate(i):
     plot_RSI(ax4, data)
     plot_x_axis_time(ax4, data)
     
-    # Button logics
-    showMA_status, showEMA_status, showBB_status = plot_button_TA.get_status()
-    
-    MA_status, MACD_status, RSI_status, BB_status = plot_button_strategy.get_status()
-    
+
     
 
 fig = plt.figure()
@@ -285,9 +334,8 @@ figure_design([ax1, ax2, ax3, ax4])
 Stock = ['AAPL']
 
 plot_button_TA = interactive_TA()               # global variable
-plot_button_strategy = interactive_strategy()   # global variable
-
-# animate(0)  # for debug
+# plot_button_strategy = interactive_strategy()   # global variable
+animate(0)  # for debug
 ani = animation.FuncAnimation(fig, animate, interval=100)
 
 plt.show()
