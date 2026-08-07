@@ -10,10 +10,18 @@ from matplotlib.colors import to_hex
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.transforms as transform
+from matplotlib.transforms import Affine2D
 import matplotlib.ticker as mticker
 from matplotlib.gridspec import GridSpec
 from matplotlib.widgets import CheckButtons
 from mplfinance.original_flavor import candlestick_ohlc
+
+import sys
+from pathlib import Path
+project_root = Path(__file__).parent.parent
+sys.path.append(str(project_root))
+
+from part2.Strategies import MA_Crossover_Strategy, MACD_Crossover_Strategy, RSI_Crossover_Strategy, BB_Bounce_Strategy
 
 COLORUP = "#eb4d5c"
 COLORDOWN = "#53b987"
@@ -228,7 +236,7 @@ def interactive_strategy():
     check.set_facecolor("#121416")
     
     labels = ['SMA', 'MACD', 'RSI', 'BB'] 
-    actives = [False, True, False, False]
+    actives = [False, False, True, False]
     labels_num = len(labels)
     
     plot_button = CheckButtons(check, labels, actives,
@@ -275,10 +283,84 @@ def compute_plot_TA(ax: Axes, data: pd.DataFrame,
         ax.plot(data["BBL"], color="#666699", linestyle="-", linewidth=0.2)
 
     return data
+
+
+
+def MA_Strategy(ax: Axes, data: pd.DataFrame):
+    Record, OpenLong, CloseLong, OpenShort, CloseShort = MA_Crossover_Strategy(data)   # execute moving average crossover strategy
+    data['MA OpenLong'] = OpenLong
+    data['MA CloseLong'] = CloseLong
+    data['MA OpenShort'] = OpenShort
+    data['MA CloseShort'] = CloseShort
     
+    ax.scatter(data.index, data['MA OpenLong'], label='MA OpenLong', marker=r'$\diamondsuit$',
+               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
+    ax.scatter(data.index, data['MA CloseLong'], label='MA CloseLong', marker=r'$\diamondsuit$',
+               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1))
+    ax.scatter(data.index, data['MA OpenShort'], label='MA OpenShort', marker=r'$\diamondsuit$',
+               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1))  
+    ax.scatter(data.index, data['MA CloseShort'], label='MA CloseShort', marker=r'$\diamondsuit$',
+               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150)
+
+  
+
+
+def MACD_Strategy(ax: Axes, data: pd.DataFrame):
+    Record, OpenLong, CloseLong, OpenShort, CloseShort = MACD_Crossover_Strategy(data)   # execute MACD crossover strategy
+    data['MACD OpenLong'] = OpenLong
+    data['MACD CloseLong'] = CloseLong
+    data['MACD OpenShort'] = OpenShort
+    data['MACD CloseShort'] = CloseShort
+    
+    ax.scatter(data.index, data['MACD OpenLong'], label='MACD OpenLong', marker=r'$\heartsuit$',
+               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
+    ax.scatter(data.index, data['MACD CloseLong'], label='MACD CloseLong', marker=r'$\heartsuit$',
+               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1))
+    ax.scatter(data.index, data['MACD OpenShort'], label='MACD OpenShort', marker=r'$\heartsuit$',
+               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1)) 
+    ax.scatter(data.index, data['MACD CloseShort'], label='MACD CloseShort', marker=r'$\heartsuit$',
+               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150)
+
+
+def RSI_Strategy(ax: Axes, data: pd.DataFrame):
+    Record, OpenLong, CloseLong, OpenShort, CloseShort = RSI_Crossover_Strategy(data)   # execute RSI crossover strategy
+    data['RSI OpenLong'] = OpenLong
+    data['RSI CloseLong'] = CloseLong
+    data['RSI OpenShort'] = OpenShort
+    data['RSI CloseShort'] = CloseShort
+    
+    ax.scatter(data.index, data['RSI OpenLong'], label='RSI OpenLong', marker=r'$\clubsuit$',
+               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
+    ax.scatter(data.index, data['RSI CloseLong'], label='SI CloseLong', marker=r'$\clubsuit$',
+               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1))
+    ax.scatter(data.index, data['RSI OpenShort'], label='RSI OpenShort', marker=r'$\clubsuit$',
+               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1)) 
+    ax.scatter(data.index, data['RSI CloseShort'], label='RSI CloseShort', marker=r'$\clubsuit$',
+               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150)
+
+
+
+def BB_Strategy(ax: Axes, data: pd.DataFrame):
+    Record, OpenLong, CloseLong, OpenShort, CloseShort = BB_Bounce_Strategy(data)     # execute bollinger band bounce strategy
+    data['BB OpenLong'] = OpenLong
+    data['BB CloseLong'] = CloseLong
+    data['BB OpenShort'] = OpenShort
+    data['BB CloseShort'] = CloseShort
+    
+    ax.scatter(data.index, data['BB OpenLong'], label='BB OpenLong', marker=r'$\spadesuit$',
+               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
+    ax.scatter(data.index, data['BB CloseLong'], label='BB CloseLong', marker=r'$\spadesuit$',
+               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1))
+    ax.scatter(data.index, data['BB OpenShort'], label='BB OpenShort', marker=r'$\spadesuit$',
+               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1)) 
+    ax.scatter(data.index, data['BB CloseShort'], label='BB CloseShort', marker=r'$\spadesuit$',
+               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150)
+
+
+
 def animate(i):
     time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
+ 
     # process raw tick data
     filename = f"stock_tick_{time_stamp[0:10]}.csv"
     data, latest_price, latest_change, target, volume= process_data(filename, Stock[0])
@@ -305,11 +387,11 @@ def animate(i):
     
     if MA_status and (len(data['close'])>20):
         MA_Strategy(ax1, data)
-    
+        
     if MACD_status and (len(data['close'])>26):
         MACD_Strategy(ax1, data)
 
-    if RSI_status and (data['RSI'][-1]!=50):
+    if RSI_status and (data['RSI'].iloc[-1]!=50):
         RSI_Strategy(ax1, data)
 
     if BB_status and (len(data['close'])>20):
@@ -318,6 +400,12 @@ def animate(i):
     
     # legend
     leg = ax1.legend(loc='upper left', facecolor='#121416', fontsize=10)
+    
+    for handle in leg.legend_handles:
+        handle_label = str(handle.get_label())
+        if handle_label.endswith("CloseLong") or handle_label.endswith("OpenShort"):
+            handle.set_transform(Affine2D().scale(1, -1) + handle.get_transform())   # flip
+    
     plt.setp(leg.get_texts(), color='w')
     
     """
@@ -360,7 +448,7 @@ Stock = ['AAPL']
 plot_button_TA = interactive_TA()               # global variable
 plot_button_strategy = interactive_strategy()   # global variable
 
-animate(0)  # for debug
-# ani = animation.FuncAnimation(fig, animate, interval=100)
+# animate(0)  # for debug
+ani = animation.FuncAnimation(fig, animate, interval=100)
 
 plt.show()
