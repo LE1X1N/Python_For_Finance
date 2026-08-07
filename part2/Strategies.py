@@ -88,12 +88,12 @@ def MA_Crossover_Strategy(data: pd.DataFrame, direction: Literal["both", "long",
             OpenShort[Record[-1][0]] = np.nan
         Record.pop()
     
-    data['OpenLong'] = OpenLong
-    data['CloseLong'] = CloseLong
-    data['OpenShort'] = OpenShort
-    data['CloseShort'] = CloseShort
+    # data['OpenLong'] = OpenLong
+    # data['CloseLong'] = CloseLong
+    # data['OpenShort'] = OpenShort
+    # data['CloseShort'] = CloseShort
     
-    return data, Record
+    return Record, OpenLong, CloseLong, OpenShort, CloseShort
 
 
 def MACD_Crossover_Strategy(data: pd.DataFrame, direction: Literal["both", "long", "short"]="both"):
