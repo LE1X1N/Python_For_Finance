@@ -331,7 +331,7 @@ def RSI_Strategy(ax: Axes, data: pd.DataFrame):
     
     ax.scatter(data.index, data['RSI OpenLong'], label='RSI OpenLong', marker=r'$\clubsuit$',
                facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
-    ax.scatter(data.index, data['RSI CloseLong'], label='SI CloseLong', marker=r'$\clubsuit$',
+    ax.scatter(data.index, data['RSI CloseLong'], label='RSI CloseLong', marker=r'$\clubsuit$',
                facecolor='none', edgecolors='#00FFFF', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1))
     ax.scatter(data.index, data['RSI OpenShort'], label='RSI OpenShort', marker=r'$\clubsuit$',
                facecolor='none', edgecolors='#FFFF00', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1)) 
@@ -399,7 +399,7 @@ def animate(i):
     
     
     # legend
-    leg = ax1.legend(loc='upper left', facecolor='#121416', fontsize=10)
+    leg = ax1.legend(loc='lower left', facecolor='#121416', fontsize=10, framealpha=0.3)
     
     for handle in leg.legend_handles:
         handle_label = str(handle.get_label())
