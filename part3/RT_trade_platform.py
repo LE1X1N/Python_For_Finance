@@ -114,7 +114,7 @@ def plot_header(ax: Axes, stock_code: str, latest_price: float, latest_change: s
             fontweight='bold', horizontalalignment='left', verticalalignment='center')
 
     time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    ax.text(0.93, 1.05, time_stamp, color='white',transform=ax.transAxes, fontsize=10, 
+    ax.text(0.53, 1.05, time_stamp, color='white',transform=ax.transAxes, fontsize=10, 
             fontweight='bold', horizontalalignment='center', verticalalignment='center')
 
     ax.text(-0.08, 0.94, 'Indicators', color='white',transform=ax.transAxes, fontsize=10, 
@@ -318,21 +318,36 @@ def _plot_strategy_signals(ax: Axes, data: pd.DataFrame, prefix: str, marker: st
 def MA_Strategy(ax: Axes, data: pd.DataFrame):
     Record, OpenLong, CloseLong, OpenShort, CloseShort = MA_Crossover_Strategy(data)   # execute moving average crossover strategy
     _plot_strategy_signals(ax, data, "MA", r'$\diamondsuit$', OpenLong, CloseLong, OpenShort, CloseShort)
-
+    return Record
 
 def MACD_Strategy(ax: Axes, data: pd.DataFrame):
     Record, OpenLong, CloseLong, OpenShort, CloseShort = MACD_Crossover_Strategy(data)   # execute MACD crossover strategy
     _plot_strategy_signals(ax, data, "MACD", r'$\heartsuit$', OpenLong, CloseLong, OpenShort, CloseShort)
-
+    return Record
 
 def RSI_Strategy(ax: Axes, data: pd.DataFrame):
     Record, OpenLong, CloseLong, OpenShort, CloseShort = RSI_Crossover_Strategy(data)   # execute RSI crossover strategy
     _plot_strategy_signals(ax, data, "RSI", r'$\clubsuit$', OpenLong, CloseLong, OpenShort, CloseShort)
-
+    return Record
 
 def BB_Strategy(ax: Axes, data: pd.DataFrame):
     Record, OpenLong, CloseLong, OpenShort, CloseShort = BB_Bounce_Strategy(data)     # execute bollinger band bounce strategy
     _plot_strategy_signals(ax, data, "BB", r'$\spadesuit$', OpenLong, CloseLong, OpenShort, CloseShort)
+    return Record
+
+
+def plot_profit(ax: Axes, Record: list):
+    profit = 0.0
+    for i, item in enumerate(Record):
+        if item[2] == 'OpenLong' or item[2] == 'CloseShort':
+            profit = profit - float(item[1])
+        else:
+            profit = profit + float(item[1])
+
+    ax.text(0.9, 1.05, f"Daily Profit: ${str(round(profit, 3))}",
+            bbox = dict(facecolor='white', alpha = 0.5),
+            transform=ax.transAxes, color='black', fontsize=10, fontweight='bold',
+            horizontalalignment='left', verticalalignment='center')  
 
 
 def animate(i):
@@ -363,16 +378,19 @@ def animate(i):
     MA_status, MACD_status, RSI_status, BB_status = plot_button_strategy.get_status()
     
     if MA_status and (len(data['close'])>20):
-        MA_Strategy(ax1, data)
+        Record = MA_Strategy(ax1, data)
         
     if MACD_status and (len(data['close'])>26):
-        MACD_Strategy(ax1, data)
+        Record = MACD_Strategy(ax1, data)
 
     if RSI_status and (data['RSI'].iloc[-1]!=50):
-        RSI_Strategy(ax1, data)
+        Record = RSI_Strategy(ax1, data)
 
     if BB_status and (len(data['close'])>20):
-        BB_Strategy(ax1, data)
+        Record = BB_Strategy(ax1, data)
+    
+    # Profit
+    plot_profit(ax1, Record)
     
     # legend
     leg = ax1.legend(loc='lower left', facecolor='#121416', fontsize=10, framealpha=0.3)
