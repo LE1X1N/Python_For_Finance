@@ -285,75 +285,54 @@ def compute_plot_TA(ax: Axes, data: pd.DataFrame,
     return data
 
 
+def _plot_strategy_signals(ax: Axes, data: pd.DataFrame, prefix: str, marker: str, 
+                           OpenLong, CloseLong, OpenShort, CloseShort):
+    
+    col_ol = f"{prefix} OpenLong"
+    col_cl = f"{prefix} CloseLong"
+    col_os = f"{prefix} OpenShort"
+    col_cs = f"{prefix} CloseShort"
+
+    data[col_ol] = OpenLong
+    data[col_cl] = CloseLong
+    data[col_os] = OpenShort
+    data[col_cs] = CloseShort
+
+    scatter_kwargs = dict(
+        facecolor="none",
+        alpha=1,
+        s=150
+    )
+
+    ax.scatter(data.index, data[col_ol], label=f"{prefix} OpenLong", marker=marker, 
+               edgecolors="#00FFFF", **scatter_kwargs)
+    ax.scatter(data.index, data[col_cl], label=f"{prefix} CloseLong", marker=marker, 
+               edgecolors="#00FFFF", **scatter_kwargs)
+    ax.scatter(data.index, data[col_os], label=f"{prefix} OpenShort", marker=marker, 
+               edgecolors="#FFFF00", **scatter_kwargs)
+    ax.scatter(data.index, data[col_cs], label=f"{prefix} CloseShort", marker=marker, 
+               edgecolors="#FFFF00", **scatter_kwargs)
+
+
 
 def MA_Strategy(ax: Axes, data: pd.DataFrame):
     Record, OpenLong, CloseLong, OpenShort, CloseShort = MA_Crossover_Strategy(data)   # execute moving average crossover strategy
-    data['MA OpenLong'] = OpenLong
-    data['MA CloseLong'] = CloseLong
-    data['MA OpenShort'] = OpenShort
-    data['MA CloseShort'] = CloseShort
-
-    ax.scatter(data.index, data['MA OpenLong'], label='MA OpenLong', marker=r'$\diamondsuit$',
-               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
-    ax.scatter(data.index, data['MA CloseLong'], label='MA CloseLong', marker=r'$\diamondsuit$',
-               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
-    ax.scatter(data.index, data['MA OpenShort'], label='MA OpenShort', marker=r'$\diamondsuit$',
-               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150)  
-    ax.scatter(data.index, data['MA CloseShort'], label='MA CloseShort', marker=r'$\diamondsuit$',
-               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150)
+    _plot_strategy_signals(ax, data, "MA", r'$\diamondsuit$', OpenLong, CloseLong, OpenShort, CloseShort)
 
 
 def MACD_Strategy(ax: Axes, data: pd.DataFrame):
     Record, OpenLong, CloseLong, OpenShort, CloseShort = MACD_Crossover_Strategy(data)   # execute MACD crossover strategy
-    data['MACD OpenLong'] = OpenLong
-    data['MACD CloseLong'] = CloseLong
-    data['MACD OpenShort'] = OpenShort
-    data['MACD CloseShort'] = CloseShort
-    
-    ax.scatter(data.index, data['MACD OpenLong'], label='MACD OpenLong', marker=r'$\heartsuit$',
-               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
-    ax.scatter(data.index, data['MACD CloseLong'], label='MACD CloseLong', marker=r'$\heartsuit$',
-               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
-    ax.scatter(data.index, data['MACD OpenShort'], label='MACD OpenShort', marker=r'$\heartsuit$',
-               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150) 
-    ax.scatter(data.index, data['MACD CloseShort'], label='MACD CloseShort', marker=r'$\heartsuit$',
-               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150)
+    _plot_strategy_signals(ax, data, "MACD", r'$\heartsuit$', OpenLong, CloseLong, OpenShort, CloseShort)
 
 
 def RSI_Strategy(ax: Axes, data: pd.DataFrame):
     Record, OpenLong, CloseLong, OpenShort, CloseShort = RSI_Crossover_Strategy(data)   # execute RSI crossover strategy
-    data['RSI OpenLong'] = OpenLong
-    data['RSI CloseLong'] = CloseLong
-    data['RSI OpenShort'] = OpenShort
-    data['RSI CloseShort'] = CloseShort
-    
-    ax.scatter(data.index, data['RSI OpenLong'], label='RSI OpenLong', marker=r'$\clubsuit$',
-               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
-    ax.scatter(data.index, data['RSI CloseLong'], label='RSI CloseLong', marker=r'$\clubsuit$',
-               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
-    ax.scatter(data.index, data['RSI OpenShort'], label='RSI OpenShort', marker=r'$\clubsuit$',
-               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150) 
-    ax.scatter(data.index, data['RSI CloseShort'], label='RSI CloseShort', marker=r'$\clubsuit$',
-               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150)
-
+    _plot_strategy_signals(ax, data, "RSI", r'$\clubsuit$', OpenLong, CloseLong, OpenShort, CloseShort)
 
 
 def BB_Strategy(ax: Axes, data: pd.DataFrame):
     Record, OpenLong, CloseLong, OpenShort, CloseShort = BB_Bounce_Strategy(data)     # execute bollinger band bounce strategy
-    data['BB OpenLong'] = OpenLong
-    data['BB CloseLong'] = CloseLong
-    data['BB OpenShort'] = OpenShort
-    data['BB CloseShort'] = CloseShort
-    
-    ax.scatter(data.index, data['BB OpenLong'], label='BB OpenLong', marker=r'$\spadesuit$',
-               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
-    ax.scatter(data.index, data['BB CloseLong'], label='BB CloseLong', marker=r'$\spadesuit$',
-               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
-    ax.scatter(data.index, data['BB OpenShort'], label='BB OpenShort', marker=r'$\spadesuit$',
-               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150) 
-    ax.scatter(data.index, data['BB CloseShort'], label='BB CloseShort', marker=r'$\spadesuit$',
-               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150)
-
+    _plot_strategy_signals(ax, data, "BB", r'$\spadesuit$', OpenLong, CloseLong, OpenShort, CloseShort)
 
 
 def animate(i):
@@ -394,7 +373,6 @@ def animate(i):
 
     if BB_status and (len(data['close'])>20):
         BB_Strategy(ax1, data)
-    
     
     # legend
     leg = ax1.legend(loc='lower left', facecolor='#121416', fontsize=10, framealpha=0.3)
