@@ -292,17 +292,15 @@ def MA_Strategy(ax: Axes, data: pd.DataFrame):
     data['MA CloseLong'] = CloseLong
     data['MA OpenShort'] = OpenShort
     data['MA CloseShort'] = CloseShort
-    
+
     ax.scatter(data.index, data['MA OpenLong'], label='MA OpenLong', marker=r'$\diamondsuit$',
                facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
     ax.scatter(data.index, data['MA CloseLong'], label='MA CloseLong', marker=r'$\diamondsuit$',
-               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1))
+               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
     ax.scatter(data.index, data['MA OpenShort'], label='MA OpenShort', marker=r'$\diamondsuit$',
-               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1))  
+               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150)  
     ax.scatter(data.index, data['MA CloseShort'], label='MA CloseShort', marker=r'$\diamondsuit$',
                facecolor='none', edgecolors='#FFFF00', alpha=1, s=150)
-
-  
 
 
 def MACD_Strategy(ax: Axes, data: pd.DataFrame):
@@ -315,9 +313,9 @@ def MACD_Strategy(ax: Axes, data: pd.DataFrame):
     ax.scatter(data.index, data['MACD OpenLong'], label='MACD OpenLong', marker=r'$\heartsuit$',
                facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
     ax.scatter(data.index, data['MACD CloseLong'], label='MACD CloseLong', marker=r'$\heartsuit$',
-               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1))
+               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
     ax.scatter(data.index, data['MACD OpenShort'], label='MACD OpenShort', marker=r'$\heartsuit$',
-               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1)) 
+               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150) 
     ax.scatter(data.index, data['MACD CloseShort'], label='MACD CloseShort', marker=r'$\heartsuit$',
                facecolor='none', edgecolors='#FFFF00', alpha=1, s=150)
 
@@ -332,9 +330,9 @@ def RSI_Strategy(ax: Axes, data: pd.DataFrame):
     ax.scatter(data.index, data['RSI OpenLong'], label='RSI OpenLong', marker=r'$\clubsuit$',
                facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
     ax.scatter(data.index, data['RSI CloseLong'], label='RSI CloseLong', marker=r'$\clubsuit$',
-               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1))
+               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
     ax.scatter(data.index, data['RSI OpenShort'], label='RSI OpenShort', marker=r'$\clubsuit$',
-               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1)) 
+               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150) 
     ax.scatter(data.index, data['RSI CloseShort'], label='RSI CloseShort', marker=r'$\clubsuit$',
                facecolor='none', edgecolors='#FFFF00', alpha=1, s=150)
 
@@ -350,9 +348,9 @@ def BB_Strategy(ax: Axes, data: pd.DataFrame):
     ax.scatter(data.index, data['BB OpenLong'], label='BB OpenLong', marker=r'$\spadesuit$',
                facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
     ax.scatter(data.index, data['BB CloseLong'], label='BB CloseLong', marker=r'$\spadesuit$',
-               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1))
+               facecolor='none', edgecolors='#00FFFF', alpha=1, s=150)
     ax.scatter(data.index, data['BB OpenShort'], label='BB OpenShort', marker=r'$\spadesuit$',
-               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150, transform=ax.transData + Affine2D().scale(1, -1)) 
+               facecolor='none', edgecolors='#FFFF00', alpha=1, s=150) 
     ax.scatter(data.index, data['BB CloseShort'], label='BB CloseShort', marker=r'$\spadesuit$',
                facecolor='none', edgecolors='#FFFF00', alpha=1, s=150)
 
@@ -400,12 +398,6 @@ def animate(i):
     
     # legend
     leg = ax1.legend(loc='lower left', facecolor='#121416', fontsize=10, framealpha=0.3)
-    
-    for handle in leg.legend_handles:
-        handle_label = str(handle.get_label())
-        if handle_label.endswith("CloseLong") or handle_label.endswith("OpenShort"):
-            handle.set_transform(Affine2D().scale(1, -1) + handle.get_transform())   # flip
-    
     plt.setp(leg.get_texts(), color='w')
     
     """
