@@ -78,3 +78,11 @@ python part2/backtest_panel.py
 
 
 ## Part3 实时交易
+
+基于Part1当中的数据和Part2当中的策略，设计实时交易平台，模拟真实场景中股票的自动化交易。在界面当中添加按钮随时切换不同策略进行模拟交易。
+
+``` bash
+python part3/RT_trade_platform.py
+```
+
+![实时交易](./docs/194331.gif)
