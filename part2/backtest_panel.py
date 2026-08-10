@@ -263,7 +263,7 @@ def animate(i):
         subplot_MACD(data_day, ax2)
         subplot_RSI(data_day, ax3)
         
-        profit = apply_strategy(data_day, ax1, MA_Crossover_Strategy, direction="both")
+        profit = apply_strategy(data_day, ax1, RSI_Crossover_Strategy, direction="both")
         total_profit = compute_profit(i, total_profit, profit, ax1)
 
 ani = animation.FuncAnimation(fig, animate, interval=100)
