@@ -86,3 +86,8 @@ python part3/RT_trade_platform.py
 ```
 
 ![实时交易](./docs/194331.gif)
+
+
+参考视频:
+
+https://www.youtube.com/channel/UCtfTf1nNJQ4PbUDqj-Q48rw
